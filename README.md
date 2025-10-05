@@ -1,7 +1,5 @@
 # 9th_Node.js
 
-# Git Convention : Strategy
-
 # Git Convention : Commit
 
 `제목`, `본문`, `꼬리말` 세 부분으로 나뉩니다.  
