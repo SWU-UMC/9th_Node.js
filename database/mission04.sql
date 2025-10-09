@@ -1,0 +1,1 @@
+SELECT * FROM 9th_node.mission;
