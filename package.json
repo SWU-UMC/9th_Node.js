@@ -1,0 +1,29 @@
+{
+  "name": "9th_node",
+  "version": "1.0.0",
+  "description": "`제목`, `본문`, `꼬리말` 세 부분으로 나뉩니다.  \r 각 부분은 빈 줄로 구분되어야 합니다. `git commit` 입력 후 작성하면 됩니다.",
+  "homepage": "https://github.com/SWU-UMC/9th_Node.js#readme",
+  "bugs": {
+    "url": "https://github.com/SWU-UMC/9th_Node.js/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SWU-UMC/9th_Node.js.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node src/index.js",
+    "dev": "nodemon --exec node src/index.js"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
+}
