@@ -1,4 +1,4 @@
-import { responseFromUser } from "../user.dto.js";
+/*import { responseFromUser } from "../user.dto.js";
 import {
   addUser,
   getUser,
@@ -29,4 +29,4 @@ export const userSignUp = async (data) => {
   const preferences = await getUserPreferencesByUserId(joinUserId);
 
   return responseFromUser({ user, preferences });
-};
+}; 워크북 실습 */

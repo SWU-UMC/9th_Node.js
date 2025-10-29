@@ -1,4 +1,4 @@
-export const bodyToUser = (body) => {
+/*export const bodyToUser = (body) => {
     const birth = new Date(body.birth); //날짜 변환
   
     return {
@@ -11,4 +11,4 @@ export const bodyToUser = (body) => {
       phoneNumber: body.phoneNumber,//필수
       preferences: body.preferences,// 필수 
     };
-  };
+  }; 워크북 실습*/

@@ -1,4 +1,4 @@
-import { pool } from "../db.config.js";
+/*import { pool } from "../db.config.js";
 
 // User 데이터 삽입
 export const addUser = async (data) => {
@@ -100,4 +100,4 @@ export const getUserPreferencesByUserId = async (userId) => {
   } finally {
     conn.release();
   }
-};
+}; 워크북 실습 */
