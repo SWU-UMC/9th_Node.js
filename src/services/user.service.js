@@ -10,6 +10,7 @@ import {
 export const userSignUp = async (data) => {
   const joinUserId = await addUser({
     email: data.email,
+    password:hashedPassword,
     name: data.name,
     gender: data.gender,
     birth: data.birth,
@@ -21,6 +22,7 @@ export const userSignUp = async (data) => {
   if (joinUserId === null) {
     throw new Error("이미 존재하는 이메일입니다.");
   }
+
 
   for (const preference of data.preferences) {
     await setPreference(joinUserId, preference);

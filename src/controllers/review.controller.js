@@ -4,7 +4,7 @@ import { reviewAdd } from "../services/review.service.js";
 export const addReviewController = async (req, res, next) => {
     try {
         const { mission_id } = req.params;
-        const user_id = req.user_id
+        const user_id = 1;
         const review = await reviewAdd(user_id, mission_id, req.body);
 
         res.status(StatusCodes.OK).json({ result: review });
