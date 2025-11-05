@@ -1,11 +1,11 @@
 import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
-import { addMissionController } from "./controllers/mission.controller.js";
+import { addMissionController, getMissionsByRestaurantController } from "./controllers/mission.controller.js";
 import { handleUserSignUp } from "./controllers/user.controller.js";
-import { regionForRestaurant } from "./controllers/restaurant.controller.js";
+import { regionForRestaurant, handleListRestaurantReviews } from "./controllers/restaurant.controller.js";
 import { addReviewController } from "./controllers/review.controller.js";
-import { startMissionController } from "./controllers/user_mission.controller.js";
+import { startMissionController, handleOngoingMissions } from "./controllers/user_mission.controller.js";
 
 dotenv.config();
 
@@ -29,6 +29,12 @@ app.post(
   "/api/missions/:mission_id/start",
   startMissionController
 );
+
+app.get("/api/restaurants/:restaurant_id/reviews", handleListRestaurantReviews);
+app.get("/api/users/:user_id/reviews", handleListRestaurantReviews);
+app.get("/api/restaurants/:restaurant_id/missions", getMissionsByRestaurantController);
+app.get("/api/users/:user_id/ongoing-missions", handleOngoingMissions);
+
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);

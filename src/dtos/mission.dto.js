@@ -14,7 +14,7 @@ export const responseFromMission = (mission) => {
     const missionData = mission;
 
   return {
-    id: missionData.mission_id,
+    mission_id: missionData.mission_id,
     restaurant_id: missionData.restaurant_id,
     title: missionData.title,
     description: missionData.description,

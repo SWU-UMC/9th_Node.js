@@ -1,4 +1,5 @@
 import { bodyToUser, responseFromUser } from "../dtos/user.dto.js";
+import bcrypt from 'bcrypt';
 
 import {
   addUser,
@@ -8,9 +9,12 @@ import {
 } from "../repositories/user.repository.js";
 
 export const userSignUp = async (data) => {
+
+  const hashedPassword = await bcrypt.hash(data.password, 10); // 10은 salt rounds
+  
   const joinUserId = await addUser({
     email: data.email,
-    password:hashedPassword,
+    password: hashedPassword,
     name: data.name,
     gender: data.gender,
     birth: data.birth,

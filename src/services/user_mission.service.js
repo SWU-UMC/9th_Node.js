@@ -2,6 +2,7 @@ import {
   findUserByMission,
   createUserMission,
   getUserMissionById,
+  getOngoingMissions
 } from "../repositories/user_mission.repository.js";
 
 import { getMissionById } from "../repositories/mission.repository.js";
@@ -32,4 +33,15 @@ export const startMission = async (user_id, mission_id) => {
     const completed_id = await createUserMission(challengeDate);
     const newUserMission = await getUserMissionById(completed_id);
     return responseFromUserMission(newUserMission);
-}
+};
+
+export const getOngoingMissionsService = async (user_id, cursor = 0, limit = 5) => {
+  const missions = await getOngoingMissions(user_id, cursor, limit);
+
+  const nextCursor = missions.length > 0 ? missions[missions.length - 1].mission_id : null;
+
+  return {
+    missions: responseFromMission(missions),
+    nextCursor,
+  };
+};
