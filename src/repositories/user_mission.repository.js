@@ -33,3 +33,35 @@ export const completeUserMission = async (userMissionId) => {
 
   return updated;
 };
+
+/**
+ * 진행 중인 미션 목록 조회
+ * @param {number} userId
+ */
+export const listInProgressMissionsByUser = async (userId) => {
+  return await prisma.user_mission.findMany({
+    where: {
+      user_id: Number(userId),
+      status: "in_progress",
+    },
+    orderBy: { started_at: "asc" },
+    select: {
+      user_id: true,
+      started_at: true,
+      mission: {
+        select: {
+          mission_id: true,
+          mission_title: true,
+          mission_detail: true,
+          reward_point: true,
+          restaurant: {
+            select: {
+              restaurant_name: true,
+              region_id: true,
+            },
+          },
+        },
+      },
+    },
+  });
+};

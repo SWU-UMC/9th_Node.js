@@ -1,9 +1,12 @@
 //src/controllers/user_mission.controller.js
-//유저의 미션 도전 및 완료
-
 import express from "express";
+import {
+  startUserMission,
+  completeUserMission,
+  listInProgressMissionsByUser,
+} from "../repositories/user_mission.repository.js";
+
 const router = express.Router();
-import { prisma } from "../db.config.js";
 
 // 미션 도전 시작
 //POST /api/user/:userId/mission/:missionId
@@ -46,6 +49,44 @@ router.patch("/user_mission/:id/complete", async (req, res) => {
     res.status(500).json({ success: false, message: "서버 오류" });
   }
 });
+
+
+/**
+ * [GET] 사용자의 진행 중인 미션 목록 조회
+ * URL: /api/users/:userId/missions/in-progress
+ */
+router.get("/users/:userId/missions/in-progress", async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const missions = await listInProgressMissionsByUser(userId);
+
+    const formatted = missions.map((m) => ({
+      user_id: m.user_id,
+      restaurant_name: m.mission.restaurant.restaurant_name,
+      region_id: m.mission.restaurant.region_id,
+      mission_id: m.mission.mission_id,
+      mission_title: m.mission.mission_title,
+      mission_detail: m.mission.mission_detail,
+      reward_point: m.mission.reward_point,
+      started_at: m.started_at,
+    }));
+
+    res.status(200).json({
+      success: true,
+      data: formatted,
+    });
+  } catch (err) {
+    console.error("❌ 진행 중 미션 조회 오류:", err);
+    res.status(500).json({
+      success: false,
+      message: "서버 오류",
+    });
+  }
+});
+
+
+
 // router.patch("/user_mission/:id/complete", async (req, res) => {
 //   const { id } = req.params;
 //   try {
