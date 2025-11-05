@@ -14,6 +14,9 @@ const reviewRouter = require("./controllers/review.controller");
 const missionRouter = require("./controllers/mission.controller");
 const userMissionRouter = require("./controllers/user_mission.controller");
 
+
+//워크북과 다른 점은 저는 라우터로 이미 설계해서 컨트롤로에서 export한 함수로 불러오기 방식
+//으로 미작성했는데 혹시 이게 불필요한 코드라면, 수정하겠습니다~!
 app.use("/api", regionRouter);
 app.use("/api", reviewRouter);
 app.use("/api", missionRouter);
