@@ -1,7 +1,7 @@
 // src/controllers/mission.controller.js
 import express from "express";
 import { findRestaurantById, createMission } from "../repositories/mission.repository.js";
-
+import { listMissionsByRestaurant } from "../repositories/mission.repository.js";
 const router = express.Router();
 
 /**
@@ -34,5 +34,42 @@ router.post("/restaurant/:id/mission", async (req, res) => {
     });
   }
 });
+
+/**
+ * [GET] 특정 가게의 미션 목록 조회
+ * URL: /api/restaurants/:restaurantId/missions?userId=1 -> 이유는 연습이기에 유저 id 1 밖에 없음..
+ */
+router.get("/restaurants/:restaurantId/missions", async (req, res) => {
+  const { restaurantId } = req.params;
+  const userId = Number(req.query.userId) || 0; // 쿼리에서 userId 받기 (연습용)
+
+  try {
+    const missions = await listMissionsByRestaurant(restaurantId, userId);
+
+    const formatted = missions.map((m) => ({
+      restaurant_name: m.restaurant.restaurant_name,
+      region_id: m.restaurant.region_id ?? 1, // 서울 = 1
+      mission_id: m.mission_id,
+      mission_title: m.mission_title,
+      mission_detail: m.mission_detail,
+      reward_point: m.reward_point,
+      status: m.user_mission.length
+        ? m.user_mission[0].status
+        : "not_started", // 아직 안 한 경우
+    }));
+
+    res.status(200).json({
+      success: true,
+      data: formatted,
+    });
+  } catch (err) {
+    console.error("❌ 미션 목록 조회 오류:", err);
+    res.status(500).json({
+      success: false,
+      message: "서버 오류",
+    });
+  }
+});
+
 
 export default router;
