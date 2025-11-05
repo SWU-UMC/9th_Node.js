@@ -1,22 +1,20 @@
+// src/index.js
+import express from "express";
+import dotenv from "dotenv";
 
-//기본 서버 구동 src/index.js
-
-const express = require("express");
-const dotenv = require("dotenv");
+// .env 로드
 dotenv.config();
 
 const app = express();
 app.use(express.json());
 
-// 라우터 연결
-const regionRouter = require("./controllers/region.controller");
-const reviewRouter = require("./controllers/review.controller");
-const missionRouter = require("./controllers/mission.controller");
-const userMissionRouter = require("./controllers/user_mission.controller");
+// 라우터 import
+import regionRouter from "./controllers/region.controller.js";
+import reviewRouter from "./controllers/review.controller.js";
+import missionRouter from "./controllers/mission.controller.js";
+import userMissionRouter from "./controllers/user_mission.controller.js";
 
-
-//워크북과 다른 점은 저는 라우터로 이미 설계해서 컨트롤로에서 export한 함수로 불러오기 방식
-//으로 미작성했는데 혹시 이게 불필요한 코드라면, 수정하겠습니다~!
+// 라우터 등록
 app.use("/api", regionRouter);
 app.use("/api", reviewRouter);
 app.use("/api", missionRouter);

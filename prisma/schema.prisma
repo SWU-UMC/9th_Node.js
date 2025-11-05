@@ -31,6 +31,7 @@ model mission_review {
   content       String?     @db.Text
   rating        Float?      @db.Float
   photo         String?     @db.VarChar(255)
+  owner_reply   String?     @db.Text
   created_at    DateTime?   @default(now()) @db.DateTime(0)
   mission       mission?    @relation(fields: [mission_id], references: [mission_id], onDelete: NoAction, onUpdate: NoAction, map: "mission_review_ibfk_1")
   restaurant    restaurant? @relation(fields: [restaurant_id], references: [restaurant_id], onDelete: NoAction, onUpdate: NoAction, map: "mission_review_ibfk_2")

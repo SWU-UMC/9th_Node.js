@@ -1,9 +1,9 @@
 //src/controllers/user_mission.controller.js
 //유저의 미션 도전 및 완료
 
-const express = require("express");
+import express from "express";
 const router = express.Router();
-const pool = require("../services/db.config");
+import { prisma } from "../db.config.js";
 
 // 미션 도전 시작
 //POST /api/user/:userId/mission/:missionId
@@ -79,4 +79,4 @@ router.patch("/user_mission/:id/complete", async (req, res) => {
 //   }
 // });
 
-module.exports = router;
+export default router;

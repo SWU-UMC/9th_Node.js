@@ -1,24 +1,27 @@
-//src/controllers/region.controller.js: 
-// 특정 지역에 가게 추가하기!
+// src/controllers/region.controller.js
+import express from "express";
+import { prisma } from "../db.config.js";
+import { findRegionById, createRestaurant } from "../repositories/region.repository.js";
 
-const express = require("express");
 const router = express.Router();
-const pool = require("../services/db.config");
 
-//POST /api/region/:regionId/restaurant
-// 특정 지역에 가게 추가
+/**
+ * [POST] 특정 지역에 가게 추가하기
+ * URL: /api/region/:regionId/restaurant
+ */
 router.post("/region/:regionId/restaurant", async (req, res) => {
   const { regionId } = req.params;
   const data = req.body;
 
   try {
     const region = await findRegionById(regionId);
-    if (!region) return res.status(404).json({ success: false, message: "지역이 존재하지 않습니다." });
+    if (!region)
+      return res.status(404).json({ success: false, message: "지역이 존재하지 않습니다." });
 
     const restaurant = await createRestaurant(regionId, data);
     res.status(201).json({ success: true, restaurant_id: restaurant.restaurant_id });
   } catch (err) {
-    console.error(err);
+    console.error("❌ 가게 추가 오류:", err);
     res.status(500).json({ success: false, message: "서버 오류" });
   }
 });
@@ -44,4 +47,4 @@ router.post("/region/:regionId/restaurant", async (req, res) => {
 //   }
 // });
 
-module.exports = router;
+export default router;

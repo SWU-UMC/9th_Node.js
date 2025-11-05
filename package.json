@@ -1,4 +1,5 @@
 {
+  "type": "module",
   "name": "playground-umc-9th-nodejs",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

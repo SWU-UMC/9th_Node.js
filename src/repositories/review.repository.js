@@ -1,48 +1,37 @@
 import { prisma } from "../db.config.js";
 
-/**
- * 특정 식당(restaurant_id)의 모든 리뷰를 가져오는 함수
- * 커서 기반 페이지네이션을 적용하여, id가 cursor보다 큰 리뷰 5개씩 반환
- */
-export const getAllStoreReviews = async (restaurantId, cursor = 0) => {
-    const reviews = await prisma.mission_review.findMany({
-      select: {
-        review_id: true,
-        content: true,
-        rating: true,
-        photo: true,
-        created_at: true,
-        // 리뷰 작성자 정보
-        user: {
-          select: {
-            id: true,
-            name: true,
-            nickname: true,
-            profile_image: true,
-          },
-        },
-        // 관련 식당 정보
-        restaurant: {
-          select: {
-            restaurant_id: true,
-            restaurant_name: true,
-          },
-        },
-        // 관련 미션 정보
-        mission: {
-          select: {
-            mission_id: true,
-            mission_title: true,
-          },
-        },
-      },
-      where: {
-        restaurant_id: restaurantId,
-        review_id: { gt: cursor },
-      },
-      orderBy: { review_id: "asc" },
-      take: 5, // 페이지당 5개씩
-    });
-  
-    return reviews;
-  };
+/** 특정 가게 리뷰 목록 (cursor 기반 페이지네이션) */
+export const listStoreReviews = async (storeId, cursor = 0) => {
+  return await prisma.mission_review.findMany({
+    where: { restaurant_id: storeId, review_id: { gt: cursor } },
+    orderBy: { review_id: "asc" },
+    take: 5,
+    select: {
+      review_id: true,
+      content: true,
+      rating: true,
+      photo: true,
+      owner_reply: true,
+      created_at: true,
+      user: { select: { id: true, nickname: true } },
+    },
+  });
+};
+
+/** 특정 유저의 리뷰 목록 */
+export const findReviewsByUserId = async (userId) => {
+  return await prisma.mission_review.findMany({
+    where: { user_id: Number(userId) },
+    orderBy: { created_at: "desc" },
+    select: {
+      review_id: true,
+      content: true,
+      rating: true,
+      photo: true,
+      owner_reply: true,
+      created_at: true,
+      restaurant: { select: { restaurant_name: true } },
+      user: { select: { nickname: true, profile_image: true } },
+    },
+  });
+};

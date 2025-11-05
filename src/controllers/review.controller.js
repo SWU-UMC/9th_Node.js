@@ -1,20 +1,21 @@
-//src/controllers/review.controller.js:
-//가게에 리뷰 추가하기!
-const express = require("express");
-const axios = require("axios"); // 외부 API 호출용
+// src/controllers/review.controller.js
+import express from "express";
+import axios from "axios"; // 외부 API (현재 미사용)
+import { prisma } from "../db.config.js"; 
+import { findReviewsByUserId, listStoreReviews } from "../repositories/review.repository.js"; // ✅ Repository import
+
 const router = express.Router();
-const pool = require("../services/db.config");
-
-// 네이버 지도 API 정보 (.env에 추가할 값) -> 실제 생성하지 않아서. 컨트롤러에 올려요!
 
 
 
-// POST /api/review  -> 기존 이미 생성을 변경! 프리즈마 맞춰서
+/**
+ * [POST] 리뷰 추가하기
+ * URL: /api/review
+ */
 router.post("/review", async (req, res) => {
   const { mission_id, restaurant_id, user_id, content, rating, photo, restaurant_name } = req.body;
 
   try {
-    // Prisma를 이용한 mission_review 테이블 insert
     const newReview = await prisma.mission_review.create({
       data: {
         mission_id: Number(mission_id),
@@ -38,25 +39,57 @@ router.post("/review", async (req, res) => {
 });
 
 /**
- *[GET] 특정 가게(storeId)의 리뷰 목록 조회 -> 워크북 내용 실습
+ * [GET] 특정 가게의 리뷰 목록 조회
  * URL: /api/v1/stores/:storeId/reviews
  */
- router.get("/v1/stores/:storeId/reviews", async (req, res) => {
+router.get("/v1/stores/:storeId/reviews", async (req, res) => {
   try {
     const storeId = parseInt(req.params.storeId);
     const cursor =
       typeof req.query.cursor === "string" ? parseInt(req.query.cursor) : 0;
 
     const reviews = await listStoreReviews(storeId, cursor);
-
-    res.status(200).json(reviews);
+    res.status(200).json({ success: true, data: reviews });
   } catch (err) {
     console.error("리뷰 조회 오류:", err);
     res.status(500).json({ success: false, message: "서버 오류" });
   }
 });
 
-module.exports = router
+/**
+ * [GET] 내가 작성한 리뷰 목록 조회
+ * URL: /api/users/:userId/reviews
+ */
+router.get("/users/:userId/reviews", async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const reviews = await findReviewsByUserId(userId);
+
+    if (!reviews.length) {
+      return res.status(404).json({ success: false, message: "작성한 리뷰가 없습니다." });
+    }
+
+    const formatted = reviews.map((r) => ({
+      review_id: r.review_id,
+      restaurant_name: r.restaurant?.restaurant_name,
+      rating: r.rating,
+      content: r.content,
+      photo: r.photo,
+      owner_reply: r.owner_reply,
+      created_at: r.created_at,
+      user_nickname: r.user?.nickname,
+      user_profile_image: r.user?.profile_image,
+    }));
+
+    res.status(200).json({ success: true, data: formatted });
+  } catch (err) {
+    console.error("리뷰 조회 오류:", err);
+    res.status(500).json({ success: false, message: "서버 오류" });
+  }
+});
+export default router;
+
     //이전 프리즈마 이전 코드들은 모두 주석처리함.
     // 네이버 지도에서 가게 존재 여부 확인
     // const query = encodeURIComponent(restaurant_name);
