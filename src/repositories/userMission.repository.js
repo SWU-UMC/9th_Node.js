@@ -1,41 +1,52 @@
-import { pool } from "../db.config.js";
+import { prisma } from "../db.config.js";
 
 // 도전 중복 확인
 export const existsUserMission = async ({ userId, missionId }) => {
-  const conn = await pool.getConnection();
-  try {
-    const [rows] = await conn.query(
-      `SELECT EXISTS(
-         SELECT 1 FROM user_mission
-         WHERE user_id = ? AND mission_id = ?
-       ) AS isExist;`,
-      [userId, missionId]
-    );
-    return !!rows[0].isExist;
-  } finally {
-    conn.release();
-  }
+  const count = await prisma.userMission.count({
+    where: { userId: Number(userId), missionId: Number(missionId) },
+  });
+  return count > 0;
 };
 
 // 도전 등록 (기본 상태 IN_PROGRESS)
 export const addUserMission = async ({ userId, missionId }) => {
-  const conn = await pool.getConnection();
-  try {
-    await conn.query(
-      `INSERT INTO user_mission (user_id, mission_id, status, started_at)
-       VALUES (?, ?, 'IN_PROGRESS', NOW());`,
-      [userId, missionId]
-    );
+  const um = await prisma.userMission.create({
+    data: {
+      user: { connect: { id: Number(userId) } },
+      mission: { connect: { id: Number(missionId) } },
+      status: "IN_PROGRESS",
+      startedAt: new Date(),
+    },
+  });
+  return um;
+};
 
-    const [rows] = await conn.query(
-      `SELECT user_id, mission_id, status, started_at, completed_at, created_at, updated_at
-         FROM user_mission
-        WHERE user_id = ? AND mission_id = ?;`,
-      [userId, missionId]
-    );
+export const findUserMission = async (userId, missionId) => {
+  return prisma.userMission.findUnique({
+    where: {
+      userId_missionId: {
+        userId: BigInt(userId),
+        missionId: BigInt(missionId),
+      },
+    },
+  });
+};
 
-    return rows[0];
-  } finally {
-    conn.release();
-  }
+export const completeUserMission = async (userId, missionId) => {
+  // 상태 COMPLETED, 완료시각 지금
+  return prisma.userMission.update({
+    where: {
+      userId_missionId: {
+        userId: BigInt(userId),
+        missionId: BigInt(missionId),
+      },
+    },
+    data: {
+      status: "COMPLETED",
+      completedAt: new Date(),
+    },
+    include: {
+      mission: true,
+    },
+  });
 };
