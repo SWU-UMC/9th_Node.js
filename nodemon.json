@@ -1,0 +1,9 @@
+{
+    "ignore": [
+      "node_modules",
+      "package-lock.json",
+      "src/generated/*",
+      "prisma/*.prisma",
+      "*.env"
+    ]
+  }

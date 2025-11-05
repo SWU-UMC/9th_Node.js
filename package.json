@@ -1,8 +1,19 @@
 {
+  "name": "playground-umc-9th-nodejs",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node src/index.js",
+    "dev": "nodemon -e js,json,prisma --exec \"prisma generate && node src/index.js\""
+  },
   "dependencies": {
+    "@prisma/client": "^6.18.0",
     "axios": "^1.13.1",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
-    "mysql2": "^3.15.3"
+    "mysql2": "^3.15.3",
+    "prisma": "^6.18.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
   }
 }

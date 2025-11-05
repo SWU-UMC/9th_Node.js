@@ -1,0 +1,119 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model mission {
+  mission_id     Int              @id @default(autoincrement())
+  restaurant_id  Int
+  mission_title  String           @db.VarChar(100)
+  mission_detail String?          @db.Text
+  reward_point   Int?             @default(0)
+  created_at     DateTime?        @default(now()) @db.DateTime(0)
+  restaurant     restaurant       @relation(fields: [restaurant_id], references: [restaurant_id], onDelete: NoAction, onUpdate: NoAction, map: "mission_ibfk_1")
+  mission_review mission_review[]
+  user_mission   user_mission[]
+
+  @@index([restaurant_id], map: "restaurant_id")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model mission_review {
+  review_id     Int         @id @default(autoincrement())
+  mission_id    Int?
+  restaurant_id Int?
+  user_id       Int?
+  content       String?     @db.Text
+  rating        Float?      @db.Float
+  photo         String?     @db.VarChar(255)
+  created_at    DateTime?   @default(now()) @db.DateTime(0)
+  mission       mission?    @relation(fields: [mission_id], references: [mission_id], onDelete: NoAction, onUpdate: NoAction, map: "mission_review_ibfk_1")
+  restaurant    restaurant? @relation(fields: [restaurant_id], references: [restaurant_id], onDelete: NoAction, onUpdate: NoAction, map: "mission_review_ibfk_2")
+  user          user?       @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "mission_review_ibfk_3")
+
+  @@index([mission_id], map: "mission_id")
+  @@index([restaurant_id], map: "restaurant_id")
+  @@index([user_id], map: "user_id")
+}
+
+model point {
+  point_id    Int       @id @default(autoincrement())
+  user_id     Int
+  point_value Int
+  description String?   @db.VarChar(255)
+  created_at  DateTime? @default(now()) @db.DateTime(0)
+  user        user      @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "point_ibfk_1")
+
+  @@index([user_id], map: "user_id")
+}
+
+model region {
+  region_id   Int          @id @default(autoincrement())
+  region_name String       @db.VarChar(100)
+  restaurant  restaurant[]
+}
+
+model restaurant {
+  restaurant_id      Int              @id @default(autoincrement())
+  region_id          Int
+  restaurant_name    String           @db.VarChar(100)
+  restaurant_address String?          @db.VarChar(255)
+  latitude           Decimal?         @db.Decimal(10, 7)
+  longitude          Decimal?         @db.Decimal(10, 7)
+  created_at         DateTime?        @default(now()) @db.DateTime(0)
+  updated_at         DateTime?        @default(now()) @db.DateTime(0)
+  mission            mission[]
+  mission_review     mission_review[]
+  region             region           @relation(fields: [region_id], references: [region_id], onDelete: NoAction, onUpdate: NoAction, map: "restaurant_ibfk_1")
+
+  @@index([region_id], map: "region_id")
+}
+
+model user {
+  id             Int              @id @default(autoincrement())
+  email          String           @unique(map: "email") @db.VarChar(255)
+  password       String           @db.VarChar(255)
+  name           String           @db.VarChar(100)
+  nickname       String?          @db.VarChar(50)
+  birth          DateTime?        @db.Date
+  phone_number   String?          @db.VarChar(20)
+  status         String?          @db.VarChar(20)
+  gender         user_gender?     @default(N)
+  inactive_at    DateTime?        @db.DateTime(0)
+  created_at     DateTime?        @default(now()) @db.DateTime(0)
+  updated_at     DateTime?        @default(now()) @db.DateTime(0)
+  profile_image  String?          @db.VarChar(255)
+  mission_review mission_review[]
+  point          point[]
+  user_mission   user_mission[]
+}
+
+model user_mission {
+  user_mission_id Int                  @id @default(autoincrement())
+  user_id         Int
+  mission_id      Int
+  status          user_mission_status? @default(in_progress)
+  started_at      DateTime?            @default(now()) @db.DateTime(0)
+  completed_at    DateTime?            @db.DateTime(0)
+  user            user                 @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "user_mission_ibfk_1")
+  mission         mission              @relation(fields: [mission_id], references: [mission_id], onDelete: NoAction, onUpdate: NoAction, map: "user_mission_ibfk_2")
+
+  @@index([mission_id], map: "mission_id")
+  @@index([user_id], map: "user_id")
+}
+
+enum user_mission_status {
+  in_progress
+  completed
+}
+
+enum user_gender {
+  M
+  F
+  N
+}
