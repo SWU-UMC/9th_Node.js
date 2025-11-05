@@ -10,6 +10,7 @@ export const bodyToReview = (body, storeId) => {
   };
 };
 
+// 단일 리뷰 생성/조회
 export const responseFromReview = (review) => {
   if (!review) return null;
   return {
@@ -21,5 +22,43 @@ export const responseFromReview = (review) => {
     imageCount: review.image_count,
     createdAt: review.created_at,
     updatedAt: review.updated_at,
+  };
+};
+
+// 리뷰 목록 조회
+export const responseFromReviews = (reviews) => {
+  const data = reviews.map((r) => ({
+    id: r.id,
+    nickname: r.userMission.user.nickname,
+    profileImage: r.userMission.user.profileImage,
+    score: r.score,
+    body: r.body,
+    createdAt: r.createdAt,
+  }));
+
+  return {
+    data,
+    pagination: {
+      cursor: reviews.length ? reviews[reviews.length - 1].id : null,
+    },
+  };
+};
+
+// 내가 작성한 리뷰 목록 조회
+export const responseFromUserReviews = (reviews) => {
+  const formatted = reviews.map((r) => ({
+    id: r.id,
+    storeName: r.userMission.mission.store?.name || "알 수 없음",
+    body: r.body,
+    score: r.score,
+    imageCount: r.imageCount,
+    createdAt: r.createdAt,
+  }));
+
+  return {
+    data: formatted,
+    pagination: {
+      cursor: reviews.length ? reviews[reviews.length - 1].id : null,
+    },
   };
 };

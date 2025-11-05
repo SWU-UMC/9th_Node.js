@@ -4,9 +4,14 @@ import cors from "cors";
 
 import { handleUserSignUp } from "./src/controllers/user.controller.js";
 import { handleAddStore } from "./src/controllers/store.controller.js";
-import { handleAddReview } from "./src/controllers/review.controller.js";
-import { handleAddMission } from "./src/controllers/mission.controller.js";
-import { handleChallengeMission } from "../controllers/userMission.controller.js";
+import { handleAddReview,
+        handleListUserReviews,
+        handleListStoreReviews, }
+        from "./src/controllers/review.controller.js";
+import { handleAddMission,
+        handleListMissionsByStore, }
+        from "./src/controllers/mission.controller.js";
+import { handleChallengeMission } from "./src/controllers/userMission.controller.js";
 
 dotenv.config();
 
@@ -22,11 +27,28 @@ app.get("/", (req, res) => {
   res.send("Hello World!");
 });
 
+
+// 사용자
 app.post("/api/v1/users/signup", handleUserSignUp);
+app.get("/api/v1/users/:user_id/reviews", handleListUserReviews);
+app.get("/api/v1/users/:user_id/missions", handleListActiveMissions);
+
+// 지역 및 가게
 app.post("/api/v1/regions/:region_id/stores", handleAddStore);
+app.get("/api/v1/stores/:store_id/missions", handleListMissionsByStore);
+
+// 리뷰
 app.post("/api/v1/stores/:store_id/reviews", handleAddReview);
+app.get("/api/v1/stores/:store_id/reviews", handleListStoreReviews);
+
+// 미션
 app.post("/api/v1/stores/:store_id/missions", handleAddMission);
-app.post("/missions/:mission_id/challenges", handleChallengeMission);
+app.post("/api/v1/missions/:mission_id/challenges", handleChallengeMission);
+app.patch(
+  "/api/v1/user-missions/:userMissionId/complete",
+  handleCompleteMission
+);
+
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);

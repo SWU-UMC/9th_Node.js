@@ -1,5 +1,3 @@
-// src/dtos/mission.dto.js
-
 export const bodyToMission = (body, storeId) => {
   return {
     storeId,
@@ -19,8 +17,20 @@ export const responseFromMission = (mission) => {
     description: mission.description,
     point: mission.point,
     deadline: mission.deadline,
-    createdAt: mission.created_at,
-    updatedAt: mission.updated_at,
-    storeId: mission.store_id,
+    createdAt: mission.createdAt,
+    updatedAt: mission.updatedAt,
+    storeId: mission.storeId,
   };
+};
+
+export const responseFromMissions = (missions) => {
+  return missions.map((mission) => ({
+    id: mission.id,
+    title: mission.title,
+    description: mission.description,
+    point: mission.point,
+    deadline: mission.deadline,
+    createdAt: mission.createdAt,
+    updatedAt: mission.updatedAt,
+  }));
 };

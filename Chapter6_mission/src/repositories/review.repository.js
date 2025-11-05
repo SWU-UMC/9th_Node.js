@@ -1,6 +1,7 @@
 // src/repositories/review.repository.js
-import { pool } from "../db.config.js";
+import { prisma, pool } from "../db.config.js";
 
+// 리뷰 등록
 export const addReview = async (reviewData) => {
   const conn = await pool.getConnection();
 
@@ -56,4 +57,62 @@ export const addReview = async (reviewData) => {
   } finally {
     conn.release();
   }
+};
+
+// 리뷰 조회
+export const getAllStoreReviews = async (storeId, cursor) => {
+  const reviews = await prisma.review.findMany({
+    where: {
+      userMission: {
+        mission: {
+          storeId: storeId,
+        },
+      },
+      id: cursor ? { gt: cursor } : undefined,
+    },
+    include: {
+      userMission: {
+        include: {
+          user: {
+            select: {
+              id: true,
+              nickname: true,
+              profileImage: true,
+            },
+          },
+        },
+      },
+    },
+    orderBy: { id: "asc" },
+    take: 5,  // 한 번에 5개 리뷰 반환
+  });
+
+  return reviews;
+};
+
+// 내가 작성한 리뷰 목록 조회
+export const getUserReviews = async (userId, cursor) => {
+  const reviews = await prisma.review.findMany({
+    where: {
+      userMission: {
+        userId: userId,
+      },
+      id: cursor ? { gt: cursor } : undefined,
+    },
+    include: {
+      userMission: {
+        include: {
+          mission: {
+            include: {
+              store: { select: { id: true, name: true } },
+            },
+          },
+        },
+      },
+    },
+    orderBy: { id: "asc" },
+    take: 5,
+  });
+
+  return reviews;
 };

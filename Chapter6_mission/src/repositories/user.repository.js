@@ -1,30 +1,30 @@
 //import { pool } from "../db.config.js";
 import { prisma } from "../db.config.js";
 
-// 사용자 생성
-export const addUser = async (data) => {
-  // 중복 이메일 검사
-  const user = await prisma.user.findFirst({
-    where: { email: data.email },
-  });
-  if (user) {
-    return null;
-  }
+// // 사용자 생성
+// export const addUser = async (data) => {
+//   // 중복 이메일 검사
+//   const user = await prisma.user.findFirst({
+//     where: { email: data.email },
+//   });
+//   if (user) {
+//     return null;
+//   }
 
-  // 새로운 사용자 생성
-  const created = await prisma.user.create({
-    data: data,
-  });
+//   // 새로운 사용자 생성
+//   const created = await prisma.user.create({
+//     data: data,
+//   });
 
-  // 새로 생성된 유저의 ID 반환
-  return created.id;
-};
+//   // 새로 생성된 유저의 ID 반환
+//   return created.id;
+// };
 
 // 사용자 정보 조회
 export const getUser = async (userId) => {
   try {
     const user = await prisma.user.findUnique({
-      where: { id: BigInt(userId) }, // DB의 id가 BigInt이므로 변환
+      where: { id: Number(userId) }, // DB의 id가 BigInt이므로 변환
     });
 
     if (!user) {
@@ -41,7 +41,7 @@ export const getUser = async (userId) => {
 export const getUserWithPreferences = async (userId) => {
   try {
     const user = await prisma.user.findUnique({
-      where: { id: BigInt(userId) },
+      where: { id: Number(userId) },
       include: {
         userFavorCategories: {
           include: { category: true },
@@ -60,8 +60,8 @@ export const setPreference = async (userId, categoryId) => {
   try {
     await prisma.userFavorCategory.create({
       data: {
-        userId: BigInt(userId),
-        categoryId: BigInt(categoryId),
+        userId: Number(userId),
+        categoryId: Number(categoryId),
       },
     });
   } catch (err) {
@@ -73,7 +73,7 @@ export const setPreference = async (userId, categoryId) => {
 export const getUserPreferencesByUserId = async (userId) => {
   try {
     const preferences = await prisma.userFavorCategory.findMany({
-      where: { userId: BigInt(userId) },
+      where: { userId: Number(userId) },
       include: {
         category: true, // 연결된 카테고리 이름 등 함께 조회
       },

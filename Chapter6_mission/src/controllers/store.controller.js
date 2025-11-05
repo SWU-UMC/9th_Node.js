@@ -4,12 +4,12 @@ import { bodyToStore } from "../dtos/store.dto.js";
 import { createStore } from "../services/store.service.js";
 
 export const handleAddStore = async (req, res) => {
-  const { region_id } = req.params;
+  const { regionId } = req.params;
 
   console.log("가게 등록 요청:", req.body);
 
   try {
-    const storeData = bodyToStore(req.body, region_id);
+    const storeData = bodyToStore(req.body, regionId);
     const store = await createStore(storeData);
 
     res.status(StatusCodes.CREATED).json({

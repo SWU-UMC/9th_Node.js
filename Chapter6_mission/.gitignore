@@ -5,3 +5,33 @@ node_modules/
 .env
 .env.*
 /src/generated/prisma
+
+# log files
+*.log
+logs
+
+# operating system files
+.DS_Store
+Thumbs.db
+
+# build and output directories
+dist
+build
+coverage
+
+# TypeScript build info
+*.tsbuildinfo
+
+# prisma files
+prisma/dev.db
+prisma/dev.db-journal
+prisma/migrations/*.sql-journal
+prisma/generated
+
+# IDE and editor settings
+.vscode
+.idea
+
+# test reports
+jest-html-reporters-*.html
+coverage

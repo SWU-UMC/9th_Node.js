@@ -1,5 +1,6 @@
-import { prisma } from "../prisma/client.js";
-import { responseFromUser } from "../dtos/user.dto.js";
+// import { prisma } from "../prisma/client.js";
+// import { responseFromUser } from "../dtos/user.dto.js";
+import { prisma } from "../db.config.js";
 
 /**
  * 회원가입 서비스 (Prisma 리팩터링 버전)

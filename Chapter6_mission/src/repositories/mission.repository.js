@@ -1,42 +1,51 @@
-// src/repositories/mission.repository.js
-import { pool } from "../db.config.js";
+import { prisma } from "../db.config.js";
 
+// 미션 등록
 export const addMission = async (missionData) => {
-  const conn = await pool.getConnection();
+  // 가게 존재 여부 확인
+  const storeExists = await prisma.store.findUnique({
+    where: { id: missionData.storeId },
+    select: { id: true },
+  });
 
+  if (!storeExists) {
+    throw new Error("해당 가게가 존재하지 않습니다.");
+  }
+
+  // 미션 생성
+  const mission = await prisma.mission.create({
+    data: {
+      storeId: missionData.storeId,
+      title: missionData.title,
+      description: missionData.description,
+      point: missionData.point,
+      deadline: missionData.deadline,
+    },
+  });
+
+  // 생성된 미션 반환
+  return mission;
+};
+
+// 특정 가게의 미션 목록 조회
+export const getMissionsByStoreId = async (storeId) => {
   try {
-    // 가게 존재 여부 확인
-    const [storeCheck] = await conn.query(
-      `SELECT EXISTS(SELECT 1 FROM store WHERE id = ?) AS isExist;`,
-      [missionData.storeId]
-    );
-    if (!storeCheck[0].isExist) {
-      throw new Error("해당 가게가 존재하지 않습니다.");
-    }
+    const missions = await prisma.mission.findMany({
+      where: { storeId: parseInt(storeId) },
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        point: true,
+        deadline: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
 
-    // 미션 등록
-    const [result] = await conn.query(
-      `INSERT INTO mission (store_id, title, description, point, deadline)
-       VALUES (?, ?, ?, ?, ?);`,
-      [
-        missionData.storeId,
-        missionData.title,
-        missionData.description,
-        missionData.point,
-        missionData.deadline,
-      ]
-    );
-
-    // 등록된 미션 조회
-    const [mission] = await conn.query(
-      `SELECT * FROM mission WHERE id = ?;`,
-      [result.insertId]
-    );
-
-    return mission[0];
+    return missions;
   } catch (err) {
-    throw new Error(`DB 오류: ${err.message}`);
-  } finally {
-    conn.release();
+    throw new Error(`미션 목록 조회 중 오류 발생: ${err.message}`);
   }
 };
