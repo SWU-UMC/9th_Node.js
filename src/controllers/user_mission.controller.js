@@ -8,19 +8,26 @@ import {
 
 const router = express.Router();
 
-// 미션 도전 시작
-//POST /api/user/:userId/mission/:missionId
+/**
+ * [POST] 미션 도전 시작
+ * URL: /api/user/:userId/mission/:missionId
+ */
 router.post("/user/:userId/mission/:missionId", async (req, res) => {
   const { userId, missionId } = req.params;
+
   try {
-    const [result] = await pool.query(
-      "INSERT INTO user_mission (user_id, mission_id, status) VALUES (?, ?, 'in_progress')",
-      [userId, missionId]
-    );
-    res.status(201).json({ success: true, user_mission_id: result.insertId });
+    const mission = await startUserMission(userId, missionId);
+    res.status(201).json({
+      success: true,
+      message: "미션 도전이 시작되었습니다!",
+      user_mission_id: mission.user_mission_id,
+    });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: "서버 오류" });
+    console.error("❌ 미션 도전 오류:", err);
+    res.status(500).json({
+      success: false,
+      message: "서버 오류",
+    });
   }
 });
 
@@ -38,17 +45,37 @@ router.post("/user/:userId/mission/:missionId", async (req, res) => {
   }
 });
 
-// 미션 완료
+/**
+ * [PATCH] 미션 완료 처리 + 포인트 적립
+ * URL: /api/user_mission/:id/complete
+ */
 router.patch("/user_mission/:id/complete", async (req, res) => {
   const { id } = req.params;
+
   try {
-    await completeUserMission(id);
-    res.json({ success: true, message: "미션 완료 및 포인트 지급 완료" });
+    const result = await completeUserMission(id);
+
+    res.json({
+      success: true,
+      message: `미션 완료! ${result.mission.reward_point}P 지급 완료 🎉`,
+      data: {
+        user_mission_id: result.user_mission_id,
+        user_id: result.user_id,
+        mission_id: result.mission_id,
+        mission_title: result.mission.mission_title,
+        reward_point: result.mission.reward_point,
+        completed_at: result.completed_at,
+      },
+    });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: "서버 오류" });
+    console.error("❌ 미션 완료 오류:", err);
+    res.status(500).json({
+      success: false,
+      message: "서버 오류",
+    });
   }
 });
+
 
 
 /**
