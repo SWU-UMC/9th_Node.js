@@ -18,7 +18,7 @@ model User {
   phoneNumber         String?             @map("phone_number") @db.VarChar(15)
   userFavorCategories UserFavorCategory[]
   storeReviews        StoreReview[]
-
+  userMissions        UserMission[]
   @@map("user")
 }
 
@@ -64,8 +64,39 @@ model Store {
   region    String        @db.VarChar(100)
   rating    Float?        @default(0)
   reviews   StoreReview[]
+  missions  Mission[]
   createdAt DateTime      @default(now()) @map("created_at") @db.DateTime(0)
   updatedAt DateTime      @updatedAt @map("updated_at") @db.DateTime(0)
 
   @@map("store")
+}
+
+model Mission {
+  id          Int          @id @default(autoincrement())
+  storeId     Int          @map("store_id")
+  content     String       @db.Text
+  reward      Int
+  deadline    DateTime?    @db.DateTime(0)
+  status      String       @default("ACTIVE") @db.VarChar(20)
+  store       Store        @relation(fields: [storeId], references: [id])
+  userMissions UserMission[]
+  createdAt   DateTime     @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt   DateTime     @updatedAt @map("updated_at") @db.DateTime(0)
+
+  @@map("mission")
+}
+
+model UserMission {
+  id          Int      @id @default(autoincrement())
+  userId      Int      @map("user_id")
+  missionId   Int      @map("mission_id")
+  status      String   @db.VarChar(20)
+  completedAt DateTime? @map("completed_at") @db.Timestamp(0)
+  user        User     @relation(fields: [userId], references: [id])
+  mission     Mission  @relation(fields: [missionId], references: [id])
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  @@unique([userId, missionId], name: "user_mission_unique")
+  @@map("user_mission")
 }

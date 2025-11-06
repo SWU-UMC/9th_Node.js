@@ -31,21 +31,38 @@ export const findStoreById = async (storeId) => {
  * 가게의 평균 평점을 업데이트.
  */
 export const updateStoreRating = async (storeId) => {
-    // 리뷰의 평균 평점 계산
-    const avgRating = await prisma.storeReview.aggregate({
-        where: { storeId: parseInt(storeId) },
-        _avg: {
-            rating: true
-        }
-    });
+    try {
+        console.log(`Updating rating for store ${storeId}`);
+        
+        // 해당 가게의 모든 리뷰의 평점 평균 계산
+        const result = await prisma.$transaction(async (tx) => {
+            return await tx.storeReview.aggregate({
+                where: { storeId: parseInt(storeId) },
+                _avg: { rating: true },
+                _count: true
+            });
+        });
 
-    // 가게 평점 업데이트
-    await prisma.store.update({
-        where: { id: parseInt(storeId) },
-        data: {
-            rating: avgRating._avg.rating || 0  // 리뷰가 없을 경우 0으로 설정
-        }
-    });
+        const averageRating = result._avg.rating || 0;
+        const reviewCount = result._count;
+
+        console.log(`New rating for store ${storeId}:`, { averageRating, reviewCount });
+
+        // 가게 평점 업데이트 (별도 트랜잭션으로 처리)
+        await prisma.store.update({
+            where: { id: parseInt(storeId) },
+            data: {
+                rating: averageRating,
+                reviewCount
+            }
+        });
+        
+        console.log(`Successfully updated rating for store ${storeId}`);
+        
+    } catch (error) {
+        console.error(`Failed to update rating for store ${storeId}:`, error);
+        // 에러를 던지지 않고 로그만 남기고 계속 진행
+    }
 };
 
 /**
@@ -81,18 +98,22 @@ export const getAllStoreReviews = async (storeId, cursor) => {
 /**
  * 가게 리뷰 생성
  */
+/**
+ * 가게 리뷰 생성 (트랜잭션 없이 단순 생성)
+ */
 export const createStoreReview = async (reviewData) => {
     const { content, rating, userId, storeId } = reviewData;
     
-    // 트랜잭션을 사용하여 리뷰 생성과 가게 평점 업데이트를 함께 처리
-    return await prisma.$transaction(async (tx) => {
-        // 리뷰 생성
-        const review = await tx.storeReview.create({
+    try {
+        console.log('Creating review with data:', { content, rating, userId, storeId });
+        
+        // 1. 리뷰 생성 (트랜잭션 없이)
+        const review = await prisma.storeReview.create({
             data: {
-                content,
-                rating,
-                userId,
-                storeId
+                content: String(content),
+                rating: parseFloat(rating),
+                userId: parseInt(userId),
+                storeId: parseInt(storeId)
             },
             include: {
                 user: {
@@ -104,9 +125,40 @@ export const createStoreReview = async (reviewData) => {
             }
         });
 
-        // 가게 평점 업데이트
-        await updateStoreRating(storeId);
+        console.log('Review created successfully:', review);
+
+        // 2. 가게 평점 업데이트 (별도 트랜잭션으로 처리)
+        try {
+            await updateStoreRating(storeId);
+        } catch (updateError) {
+            console.error('Failed to update store rating (non-blocking):', updateError);
+            // 평점 업데이트 실패해도 리뷰는 성공한 것으로 간주
+        }
 
         return review;
-    });
+        
+    } catch (error) {
+        console.error('Failed to create store review:', error);
+        
+        // 중복 리뷰 체크
+        if (error.code === 'P2002') {
+            throw new Error('이미 이 가게에 리뷰를 작성하셨습니다.');
+        }
+        
+        // 외래 키 제약 조건 오류
+        if (error.code === 'P2003') {
+            if (error.meta?.field_name?.includes('userId')) {
+                throw new Error('유효하지 않은 사용자 ID입니다.');
+            } else if (error.meta?.field_name?.includes('storeId')) {
+                throw new Error('유효하지 않은 가게 ID입니다.');
+            }
+        }
+        
+        // 트랜잭션 타임아웃 오류
+        if (error.code === 'P2028') {
+            throw new Error('요청이 시간 초과되었습니다. 잠시 후 다시 시도해주세요.');
+        }
+        
+        throw new Error('리뷰 등록 중 오류가 발생했습니다.');
+    }
 };

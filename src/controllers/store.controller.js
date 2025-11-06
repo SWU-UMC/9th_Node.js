@@ -1,5 +1,5 @@
 import * as storeService from '../services/store.service.js';
-import { listStoreReviews } from '../services/store.service.js';
+import { listStoreReviews, getStoreById as getStoreByIdService } from '../services/store.service.js';
 import { StatusCodes } from 'http-status-codes';
 
 /**
@@ -28,6 +28,29 @@ export const handleListStoreReviews = async (req, res, next) => {
       typeof req.query.cursor === "string" ? parseInt(req.query.cursor) : undefined
     );
     res.status(StatusCodes.OK).json(reviews);
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * GET /api/v1/stores/:storeId
+ * 가게 상세 정보 조회
+ */
+export const getStoreById = async (req, res, next) => {
+  try {
+    const store = await getStoreByIdService(req.params.storeId);
+    if (!store) {
+      return res.status(StatusCodes.NOT_FOUND).json({
+        success: false,
+        message: '가게를 찾을 수 없습니다.'
+      });
+    }
+    
+    res.status(StatusCodes.OK).json({
+      success: true,
+      data: store
+    });
   } catch (error) {
     console.error('Error listing store reviews:', error);
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: '가게 리뷰 조회 중 오류가 발생했습니다.' });
