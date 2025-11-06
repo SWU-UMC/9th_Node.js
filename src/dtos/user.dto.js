@@ -1,40 +1,76 @@
 export const bodyToUser = (body) => {
-  const birth = new Date(body.birth); //날짜 변환
+  // 생년월일이 유효한지 확인하고, 유효하지 않으면 현재 날짜로 설정
+  let birth;
+  if (body.birth) {
+    // YYYY-MM-DD 형식으로 오는 경우
+    if (typeof body.birth === 'string' && body.birth.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      birth = new Date(body.birth);
+    } 
+    // 타임스탬프 형식인 경우
+    else if (!isNaN(new Date(parseInt(body.birth)).getTime())) {
+      birth = new Date(parseInt(body.birth));
+    }
+  }
+  
+  // 여전히 유효하지 않으면 현재 날짜로 설정
+  if (!birth || isNaN(birth.getTime())) {
+    birth = new Date();
+  }
+
+  // 성별 유효성 검사
+  const validGenders = ['MALE', 'FEMALE', 'OTHER'];
+  const gender = validGenders.includes(body.gender) ? body.gender : 'OTHER';
+
+  // 선호 음식 카테고리 처리 (서비스 레이어에서 ID로 변환됨)
+  const preferences = Array.isArray(body.preferences) 
+    ? body.preferences
+        .map(pref => (typeof pref === 'string' ? pref.trim() : ''))
+        .filter(pref => pref)
+    : [];
 
   return {
-    email: body.email, //필수 
+    email: body.email, // 필수
     name: body.name, // 필수
-    gender: body.gender, // 필수
-    birth, // 필수
-    address: body.address || "", //선택 
-    detailAddress: body.detailAddress || "", //선택 
-    phoneNumber: body.phoneNumber,//필수
-    preferences: body.preferences,// 필수 
+    gender, // MALE, FEMALE, OTHER
+    birth, // YYYY-MM-DD 형식
+    address: body.address || "", // 주소
+    detailAddress: body.detailAddress || "", // 상세 주소
+    phoneNumber: body.phoneNumber || null, // 선택사항 (null 허용)
+    preferences // 선호 음식 카테고리 배열
   };
 };
 
-/**
- * 서비스 계층에서 받아온 사용자 정보를 클라이언트에 반환할 형식으로 변환
- * @param {Object} user - 데이터베이스에서 조회한 사용자 정보
- * @param {Array} categories - 사용자의 선호 카테고리 목록
- * @returns {Object} 클라이언트에 반환할 사용자 정보
- */
-export const responseFromUser = (user, categories = []) => {
+
+
+
+
+
+
+
+export const responseFromUser = ({ user, preferences = [] }) => {
+  const preferFoods = preferences.length > 0 
+    ? preferences.map((preference) => 
+        typeof preference === 'object' ? preference.foodCategory?.name : preference
+      )
+    : [];
+
   return {
     id: user.id,
     email: user.email,
     name: user.name,
     gender: user.gender,
     birth: user.birth,
+    phoneNumber: user.phoneNumber,
     address: user.address,
     detailAddress: user.detailAddress,
-    phoneNumber: user.phoneNumber,
-    preferences: categories.map(category => ({
-      id: category.id,
-      name: category.name,
-      // 카테고리 관련 추가 필드가 있다면 여기에 포함시키기
-    })),
-    createdAt: user.createdAt,
-    updatedAt: user.updatedAt
+    preferCategory: preferFoods,
   };
 };
+
+
+
+
+
+
+
+
