@@ -1,0 +1,258 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// Model
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+  UNKNOWN
+}
+
+enum Provider {
+  KAKAO
+  NAVER
+  GOOGLE
+  APPLE
+}
+
+enum InquiryCategory {
+  SERVICE
+  ACCOUNT
+  BUG
+  OTHER
+}
+
+enum MissionStatus {
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
+
+model User {
+  id             BigInt           @id @default(autoincrement())
+  email          String           @unique @db.VarChar(255)
+  password       String           @db.VarChar(255)
+  name           String?          @db.VarChar(100)
+  birth          DateTime?        @db.Date
+  phoneNumber    String?          @map("phone_number") @db.VarChar(20)
+  gender         Gender?          @default(UNKNOWN)
+  nickname       String?          @db.VarChar(255)
+  inactiveDate   DateTime?        @map("inactive_date")
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
+  profileImage   String?          @map("profile_image") @db.VarChar(255)
+
+  socialAccounts  SocialAccount[]
+  consents        UserConsent[]
+  favorCategories UserFavorCategory[]
+  missions        UserMission[]
+  inquiries       Inquiry[]
+  inquiryAnswers  InquiryAnswer[] @relation("AdminAnswers")
+
+  @@map("user")
+}
+
+model Category {
+  id           BigInt              @id @default(autoincrement())
+  name         String              @db.VarChar(255)
+
+  favorUsers   UserFavorCategory[]
+  stores       Store[]
+
+  @@map("category")
+}
+
+model UserFavorCategory {
+  id          BigInt      @id @default(autoincrement())
+  userId      BigInt
+  categoryId  BigInt
+  createdAt   DateTime?   @default(now()) @map("created_at")
+
+  user        User        @relation(fields: [userId], references: [id])
+  category    Category    @relation(fields: [categoryId], references: [id])
+
+  @@unique([userId, categoryId])
+  @@map("user_favor_category")
+}
+
+model SocialAccount {
+  id            BigInt    @id @default(autoincrement())
+  userId        BigInt
+  provider      Provider
+  providerId    BigInt?
+  lastLogin     DateTime? @map("last_login")
+  refreshToken  String?   @map("refresh_token") @db.VarChar(512)
+
+  user          User      @relation(fields: [userId], references: [id])
+
+  @@map("social_account")
+}
+
+model Terms {
+  id          BigInt         @id @default(autoincrement())
+  title       String          @db.VarChar(255)
+  isRequired  Boolean         @default(false) @map("is_required")
+  createdAt   DateTime?       @default(now()) @map("created_at")
+  updatedAt   DateTime?       @updatedAt @map("updated_at")
+
+  consents    UserConsent[]
+
+  @@map("terms")
+}
+
+model UserConsent {
+  id          BigInt     @id @default(autoincrement())
+  userId      BigInt
+  termsId     BigInt
+  consent     Boolean?   @default(false)
+  consentAt   DateTime?  @map("consent_at")
+  revokeAt    DateTime?  @map("revoke_at")
+
+  user        User       @relation(fields: [userId], references: [id])
+  terms       Terms      @relation(fields: [termsId], references: [id])
+
+  @@map("user_consent")
+}
+
+model Region {
+  id           BigInt     @id @default(autoincrement())
+  name         String      @db.VarChar(255)
+  goalCount    Int         @default(0) @map("goal_count")
+  rewardPoint  Int         @default(0) @map("reward_point")
+  createdAt    DateTime?   @default(now()) @map("created_at")
+  updatedAt    DateTime?   @updatedAt @map("updated_at")
+
+  stores       Store[]
+
+  @@map("region")
+}
+
+model Store {
+  id           BigInt     @id @default(autoincrement())
+  regionId     BigInt?
+  categoryId   BigInt?
+  name         String      @db.VarChar(255)
+  address      String?     @db.VarChar(255)
+  description  String?     @db.VarChar(255)
+  createdAt    DateTime?   @default(now()) @map("created_at")
+  updatedAt    DateTime?   @updatedAt @map("updated_at")
+
+  region       Region?     @relation(fields: [regionId], references: [id])
+  category     Category?   @relation(fields: [categoryId], references: [id])
+  missions     Mission[]
+
+  @@map("store")
+}
+
+model Mission {
+  id           BigInt      @id @default(autoincrement())
+  title        String       @db.VarChar(100)
+  description  String?      @db.Text
+  point        Int          @default(0)
+  deadline     DateTime?
+  createdAt    DateTime?    @default(now()) @map("created_at")
+  updatedAt    DateTime?    @updatedAt @map("updated_at")
+  storeId      BigInt?
+
+  store        Store?       @relation(fields: [storeId], references: [id])
+  userMissions UserMission[]
+
+  @@map("mission")
+}
+
+model UserMission {
+  id           BigInt      @id @default(autoincrement())
+  userId       BigInt
+  missionId    BigInt
+  status       MissionStatus @default(IN_PROGRESS)
+  createdAt    DateTime?    @default(now()) @map("created_at")
+  updatedAt    DateTime?    @updatedAt @map("updated_at")
+
+  user         User        @relation(fields: [userId], references: [id])
+  mission      Mission     @relation(fields: [missionId], references: [id])
+  points       Point[]
+  reviews      Review[]
+
+  @@unique([userId, missionId])
+  @@map("user_mission")
+}
+
+model Point {
+  id              BigInt     @id @default(autoincrement())
+  userMissionId   BigInt     @map("user_mission_id")
+  pointBalance    Int        @map("point_balance")
+  createdAt       DateTime?  @default(now()) @map("created_at")
+
+  userMission     UserMission @relation(fields: [userMissionId], references: [id])
+
+  @@map("point")
+}
+
+model Inquiry {
+  id           BigInt         @id @default(autoincrement())
+  userId       BigInt
+  title        String          @db.VarChar(255)
+  category     InquiryCategory
+  content      String          @db.Text
+  createdAt    DateTime?       @default(now()) @map("created_at")
+  updatedAt    DateTime?       @updatedAt @map("updated_at")
+
+  user         User            @relation(fields: [userId], references: [id])
+  answer       InquiryAnswer?
+
+  @@map("inquiry")
+}
+
+model InquiryAnswer {
+  id           BigInt     @id @default(autoincrement())
+  inquiryId    BigInt     @unique
+  adminId      BigInt
+  content      String?    @db.VarChar(255)
+  createdAt    DateTime?  @default(now()) @map("created_at")
+  updatedAt    DateTime?  @updatedAt @map("updated_at")
+
+  inquiry      Inquiry    @relation(fields: [inquiryId], references: [id])
+  admin        User       @relation("AdminAnswers", fields: [adminId], references: [id])
+
+  @@map("inquiry_answer")
+}
+
+model Review {
+  id              BigInt     @id @default(autoincrement())
+  userMissionId   BigInt     @map("user_mission_id")
+  body            String?    @db.Text
+  score           Int?
+  imageCount      Int?       @default(0) @map("image_count")
+  createdAt       DateTime?  @default(now()) @map("created_at")
+  updatedAt       DateTime?  @updatedAt @map("updated_at")
+
+  userMission     UserMission @relation(fields: [userMissionId], references: [id])
+  images          ReviewImage[]
+
+  @@map("review")
+}
+
+model ReviewImage {
+  id          BigInt     @id @default(autoincrement())
+  reviewId    BigInt
+  imageUrl    String     @map("image_url") @db.Text
+  createdAt   DateTime?  @default(now()) @map("created_at")
+
+  review      Review     @relation(fields: [reviewId], references: [id])
+
+  @@map("review_image")
+}
