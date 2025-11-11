@@ -1,7 +1,11 @@
-import { bodyToReview } from "../dtos/review.dto.js";
-import { addReview } from "../repositories/review.repository.js";
+import { bodyToReview, toPlainReview } from "../dtos/review.dto.js";
+import {
+  addReview,
+  findReviewsByUser,
+} from "../repositories/review.repository.js";
 import { getStoreById } from "../repositories/store.repository.js";
 import { getFirstUserId } from "../repositories/common.repository.js";
+import { responseFromReviews } from "../dtos/store.dto.js";
 
 export const addReviewToStore = async (rawBody, storeIdFromPath) => {
   const data = bodyToReview({
@@ -28,4 +32,24 @@ export const addReviewToStore = async (rawBody, storeIdFromPath) => {
   });
 
   return review;
+};
+
+export const listMyReviews = async (maybeUserId, cursor = 0, take = 5) => {
+  const userId = maybeUserId ?? (await getFirstUserId());
+  if (!userId)
+    throw new Error("사용자가 없습니다. 먼저 회원가입을 진행하세요.");
+
+  const rows = await findReviewsByUser({ userId, cursor, take });
+
+  // BigInt → JSON
+  const data = rows.map(toPlainReview);
+  return responseFromReviews(data);
+};
+
+// userId로 리뷰 목록 조회
+export const listReviewsByUserId = async (userId, cursor = 0, take = 5) => {
+  const rows = await findReviewsByUser({ userId, cursor, take });
+
+  const data = rows.map(toPlainReview);
+  return responseFromReviews(data);
 };

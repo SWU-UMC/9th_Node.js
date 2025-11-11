@@ -1,13 +1,23 @@
 import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
-import { handleCreateStore } from "./controllers/store.controller.js";
+import {
+  handleCreateStore,
+  handleListStoreMissions,
+  handleListStoreReviews,
+} from "./controllers/store.controller.js";
 import {
   handleAddMission,
   handleChallengeMission,
+  handleCompleteUserMission,
+  handleListUserMissions,
 } from "./controllers/mission.controller.js";
 import { handleUserSignUp } from "./controllers/user.controller.js";
-import { handleAddReview } from "./controllers/review.controller.js";
+import {
+  handleAddReview,
+  handleListMyReviews,
+  handleListUserReviews,
+} from "./controllers/review.controller.js";
 
 dotenv.config();
 
@@ -36,6 +46,27 @@ app.post("/api/stores/:storeId/missions", handleAddMission);
 
 // 미션 도전하기
 app.post("/api/missions/:missionId/challenge", handleChallengeMission);
+
+// 리뷰 목록 조회
+app.get("/api/stores/:storeId/reviews", handleListStoreReviews);
+
+// 내 리뷰 목록 조회
+app.get("/api/me/reviews", handleListMyReviews);
+
+// 특정 유저 리뷰 목록 조회
+app.get("/api/users/:userId/reviews", handleListUserReviews);
+
+// 특정 가게 미션 목록 조회
+app.get("/api/stores/:storeId/missions", handleListStoreMissions);
+
+// 내가 진행 중인 미션 목록 조회
+app.get("/api/users/:userId/missions", handleListUserMissions);
+
+// 진행 중 미션 완료 처리
+app.patch(
+  "/api/users/:userId/missions/:missionId/complete",
+  handleCompleteUserMission
+);
 
 app.use((err, req, res, next) => {
   console.error("INTERNAL ERROR:", err);

@@ -1,0 +1,125 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           BigInt       @id @default(autoincrement())
+  name         String       @db.VarChar(20)
+  gender       Int?
+  birth        DateTime?    @db.Date
+  address      String?      @db.VarChar(100)
+  specAddress  String?      @map("spec_address") @db.VarChar(100)
+  passwordHash String       @map("password_hash") @db.VarChar(255)
+  status       String?      @db.VarChar(15)
+  inactiveDate DateTime?    @map("inactive_date") @db.DateTime(6)
+  createdAt    DateTime     @default(now()) @map("created_at") @db.DateTime(6)
+  updatedAt    DateTime?    @map("updated_at") @db.DateTime(6)
+  point        Int?         @default(0)
+  email        String?      @db.VarChar(255)
+  provider     String?      @db.VarChar(50)
+  providerId   String?      @map("provider_id") @db.VarChar(100)
+  preferences  UserPrefer[]
+
+  @@map("user")
+}
+
+model FoodCategory {
+  id          BigInt       @id @default(autoincrement())
+  name        String       @db.VarChar(20)
+  createdAt   DateTime     @default(now()) @map("created_at") @db.DateTime(6)
+  updatedAt   DateTime     @default(now()) @updatedAt @map("updated_at") @db.DateTime(6)
+  preferredBy UserPrefer[]
+
+  @@map("food_category")
+}
+
+model UserPrefer {
+  userId     BigInt       @map("user_id")
+  categoryId BigInt       @map("category_id")
+  createdAt  DateTime     @default(now()) @map("created_at") @db.DateTime(6)
+  updatedAt  DateTime     @default(now()) @updatedAt @map("updated_at") @db.DateTime(6)
+  category   FoodCategory @relation(fields: [categoryId], references: [id])
+  user       User         @relation(fields: [userId], references: [id])
+
+  @@id([userId, categoryId])
+  @@index([categoryId], map: "user_prefer_category_id_fkey")
+  @@map("user_prefer")
+}
+
+model Store {
+  id        BigInt    @id @default(autoincrement())
+  regionId  BigInt    @map("region_id")
+  name      String    @db.VarChar(50)
+  address   String?   @db.VarChar(100)
+  score     Float?
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  missions  Mission[]
+  reviews   Review[]
+  region    region    @relation(fields: [regionId], references: [id], map: "fk_store_region")
+
+  @@index([regionId], map: "idx_store_region_id")
+  @@map("store")
+}
+
+model Review {
+  id        BigInt   @id @default(autoincrement())
+  userId    BigInt   @map("user_id")
+  storeId   BigInt   @map("store_id")
+  score     Float
+  body      String?  @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  store     Store    @relation(fields: [storeId], references: [id])
+
+  @@index([storeId], map: "review_store_id_fkey")
+  @@map("review")
+}
+
+model Mission {
+  id           BigInt        @id @default(autoincrement())
+  storeId      BigInt        @map("store_id")
+  reward       Int
+  deadline     DateTime
+  missionSpec  String        @map("mission_spec")
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+  store        Store         @relation(fields: [storeId], references: [id])
+  userMissions UserMission[]
+
+  @@index([storeId], map: "mission_store_id_fkey")
+  @@map("mission")
+}
+
+model UserMission {
+  userId      BigInt        @map("user_id")
+  missionId   BigInt        @map("mission_id")
+  status      MissionStatus
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+  startedAt   DateTime?     @map("started_at")
+  completedAt DateTime?     @map("completed_at")
+  mission     Mission       @relation(fields: [missionId], references: [id])
+
+  @@id([userId, missionId])
+  @@index([missionId], map: "user_mission_mission_id_fkey")
+  @@map("user_mission")
+}
+
+model region {
+  id         BigInt   @id @default(autoincrement())
+  name       String   @db.VarChar(20)
+  created_at DateTime @default(now()) @db.DateTime(6)
+  updated_at DateTime @default(now()) @db.DateTime(6)
+  store      Store[]
+}
+
+enum MissionStatus {
+  IN_PROGRESS
+  COMPLETED
+}

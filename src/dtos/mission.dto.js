@@ -12,7 +12,6 @@ export const bodyToMission = (body, storeIdFromPath) => {
   let deadline = (body.deadline ?? "").trim();
   if (!deadline) deadline = null;
   else if (/^\d{4}-\d{2}-\d{2}$/.test(deadline)) {
-    // YYYY-MM-DD 만 보내면 23:59:59으로
     deadline = `${deadline} 23:59:59`;
   } else if (!/^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}$/.test(deadline)) {
     throw new Error(
@@ -21,29 +20,34 @@ export const bodyToMission = (body, storeIdFromPath) => {
   }
 
   const missionSpec = (body.missionSpec ?? "").toString().trim();
-  if (!missionSpec) {
-    throw new Error("missionSpec은 필수입니다.");
-  }
+  if (!missionSpec) throw new Error("missionSpec은 필수입니다.");
 
   return { storeId, reward, deadline, missionSpec };
 };
 
-export const responseFromMission = (mission) => ({
-  id: mission.id,
-  storeId: mission.store_id,
-  reward: mission.reward,
-  deadline: mission.deadline,
-  missionSpec: mission.mission_spec,
-  createdAt: mission.created_at,
-  updatedAt: mission.updated_at,
+export const responseFromMission = (m) => ({
+  id: m.id,
+  storeId: m.storeId,
+  reward: m.reward,
+  deadline: m.deadline,
+  missionSpec: m.missionSpec,
+  createdAt: m.createdAt,
+  updatedAt: m.updatedAt,
 });
 
 export const responseFromUserMission = (um) => ({
-  userId: um.user_id,
-  missionId: um.mission_id,
+  userId: um.userId,
+  missionId: um.missionId,
   status: um.status,
-  startedAt: um.started_at,
-  completedAt: um.completed_at,
-  createdAt: um.created_at ?? null,
-  updatedAt: um.updated_at ?? null,
+  startedAt: um.startedAt,
+  completedAt: um.completedAt ?? null,
+  createdAt: um.createdAt ?? null,
+  updatedAt: um.updatedAt ?? null,
+});
+
+export const responseFromMissions = (missions) => ({
+  data: missions,
+  pagination: {
+    cursor: missions.length ? missions[missions.length - 1].id : null,
+  },
 });

@@ -1,3 +1,4 @@
+import { prisma } from "../db.config.js";
 import { regionExists } from "../repositories/region.repository.js";
 import {
   createStoreInDB,
@@ -26,4 +27,21 @@ export const ensureStoreExists = async (storeIdFromPath) => {
   const store = await getStoreById(storeId);
   if (!store) throw new Error("존재하지 않는 가게입니다.");
   return store;
+};
+
+export const listStoreReviews = async (storeId, cursor) => {
+  const reviews = await prisma.review.findMany({
+    select: {
+      id: true,
+      body: true,
+      score: true,
+      createdAt: true,
+      store: true,
+      user: { select: { name: true } },
+    },
+    where: { storeId: storeId, id: { gt: cursor } },
+    orderBy: { id: "asc" },
+    take: 5,
+  });
+  return reviews;
 };

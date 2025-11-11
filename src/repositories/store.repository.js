@@ -1,27 +1,40 @@
-import { pool } from "../db.config.js";
+import { prisma } from "../db.config.js";
 
 export const createStoreInDB = async (data) => {
-  const conn = await pool.getConnection();
-  try {
-    const [result] = await conn.query(
-      `INSERT INTO store (region_id, name, address, score)
-       VALUES (?, ?, ?, 0);`,
-      [data.region_id, data.name, data.address]
-    );
-    return result.insertId;
-  } finally {
-    conn.release();
-  }
+  const created = await prisma.store.create({
+    data: {
+      name: data.name,
+      address: data.address ?? "",
+      score: 0,
+      region: { connect: { id: Number(data.region_id) } },
+    },
+    select: { id: true },
+  });
+  return created.id;
 };
 
 export const getStoreById = async (storeId) => {
-  const conn = await pool.getConnection();
-  try {
-    const [rows] = await pool.query("SELECT * FROM store WHERE id = ?;", [
-      storeId,
-    ]);
-    return rows[0] || null;
-  } finally {
-    conn.release();
-  }
+  return prisma.store.findUnique({
+    where: { id: Number(storeId) },
+  });
+};
+
+export const getAllStoreReviews = async (storeId, cursor) => {
+  const reviews = await prisma.review.findMany({
+    select: {
+      id: true,
+      body: true,
+      score: true,
+      createdAt: true,
+      storeId: true,
+      userId: true,
+      store: true,
+      user: true,
+    },
+    where: { storeId: storeId, id: { gt: cursor } },
+    orderBy: { id: "asc" },
+    take: 5,
+  });
+
+  return reviews;
 };
