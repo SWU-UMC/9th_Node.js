@@ -1,6 +1,7 @@
 // import { prisma } from "../prisma/client.js";
 // import { responseFromUser } from "../dtos/user.dto.js";
 import { prisma } from "../db.config.js";
+import { DuplicateUserEmailError } from "../error.js";
 
 /**
  * 회원가입 서비스 (Prisma 리팩터링 버전)
@@ -14,7 +15,7 @@ export const userSignUp = async (data) => {
   });
 
   if (existUser) {
-    throw new Error("이미 존재하는 이메일입니다.");
+    throw new DuplicateUserEmailError("이미 존재하는 이메일입니다.", data);
   }
 
   // 유저 생성

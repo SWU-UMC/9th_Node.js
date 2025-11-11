@@ -18,16 +18,8 @@ export const handleUserSignUp = async (req, res, next) => {
     // 서비스 레이어 호출
     const user = await userSignUp(userData);
 
-    // 성공 응답
-    res.status(StatusCodes.CREATED).json({
-      message: "회원가입이 완료되었습니다.",
-      data: user,
-    });
+    res.status(StatusCodes.OK).success(user); // 성공 응답
   } catch (error) {
-    console.error("회원가입 중 오류 발생:", error.message);
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      message: "회원가입 처리 중 오류가 발생했습니다.",
-      error: error.message,
-    });
+    next(error); // 실패 응답x
   }
 };
