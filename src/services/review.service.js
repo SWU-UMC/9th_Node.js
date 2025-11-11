@@ -3,6 +3,7 @@ import {
   findReviewByMission,
   createReview,
   getReviewById,
+  getMyReviews
 } from "../repositories/review.repository.js";
 import { responseFromReview } from "../dtos/review.dto.js";
 import { getRestaurantById } from "../repositories/restaurant.repository.js";
@@ -41,4 +42,8 @@ export const reviewAdd = async (userId, missionId, body) => {
   const newReview = await getReviewById(review_id);
 
   return responseFromReview(newReview);
+};
+
+export const listMyReviews = async (userId, cursor, limit) => {
+  return await getMyReviews(userId, cursor, limit);
 };

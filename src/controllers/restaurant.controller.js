@@ -1,5 +1,5 @@
 import { StatusCodes } from "http-status-codes";
-import { restaurantAdd } from "../services/restaurant.service.js";
+import { restaurantAdd, listRestaurantReviews } from "../services/restaurant.service.js";
 
 export const regionForRestaurant = async (req, res, next) => {
   try {
@@ -13,4 +13,12 @@ export const regionForRestaurant = async (req, res, next) => {
         message: err.message || "서버 에러가 발생했습니다."
     });
   }
+};
+
+export const handleListRestaurantReviews = async (req, res, next) => {
+  const reviews = await listRestaurantReviews(
+    parseInt(req.params.restaurant_id),
+    typeof req.query.cursor === "string" ? parseInt(req.query.cursor) : 0
+  );
+  res.status(StatusCodes.OK).success(reviews);
 };

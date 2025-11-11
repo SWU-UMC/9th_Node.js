@@ -2,7 +2,8 @@ export const bodyToUser = (body) => {
   const birth = new Date(body.birth); //날짜 변환
 
   return {
-    email: body.email, //필수 
+    email: body.email, //필수
+    password: body.password, 
     name: body.name, // 필수
     gender: body.gender, // 필수
     birth, // 필수
@@ -13,27 +14,14 @@ export const bodyToUser = (body) => {
   };
 };
 
-export const responseFromUser = (user, preferences) => {
-  if (!user) return null;
-
-  const userData = Array.isArray(user) ? user[0] : user;
-
-  const formattedPreferences = preferences?.map((pref) => ({
-    id: pref.food_category_id,
-    name: pref.name,
-  })) || [];
+export const responseFromUser = ({ user, preferences }) => {
+  const preferFoods = preferences.map(
+    (preference) => preference.foodCategory.name
+  );
 
   return {
-    id: userData.id,
-    email: userData.email,
-    name: userData.name,
-    gender: userData.gender,
-    birth: userData.birth,
-    address: userData.address,
-    detailAddress: userData.detail_address,
-    phoneNumber: userData.phone_number,
-    createdAt: userData.created_at,
-    updatedAt: userData.updated_at,
-    preferences: formattedPreferences,
+    email: user.email,
+    name: user.name,
+    preferCategory: preferFoods,
   };
 };
