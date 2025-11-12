@@ -1,10 +1,12 @@
-/*import { responseFromUser } from "../user.dto.js";
+// src/services/user.service.js
+import { responseFromUser } from "../dtos/user.dto.js";
 import {
   addUser,
   getUser,
   getUserPreferencesByUserId,
   setPreference,
 } from "../repositories/user.repository.js";
+import { DuplicateUserEmailError } from "../errors.js"; // 실습 추가
 
 export const userSignUp = async (data) => {
   const joinUserId = await addUser({
@@ -17,8 +19,9 @@ export const userSignUp = async (data) => {
     phoneNumber: data.phoneNumber,
   });
 
+  // 수정: 커스텀 에러 객체로 던지기
   if (joinUserId === null) {
-    throw new Error("이미 존재하는 이메일입니다.");
+    throw new DuplicateUserEmailError("이미 존재하는 이메일입니다.", data);
   }
 
   for (const preference of data.preferences) {
@@ -29,4 +32,4 @@ export const userSignUp = async (data) => {
   const preferences = await getUserPreferencesByUserId(joinUserId);
 
   return responseFromUser({ user, preferences });
-}; 워크북 실습 */
+};
