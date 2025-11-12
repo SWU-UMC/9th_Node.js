@@ -1,7 +1,13 @@
 // src/controllers/mission.controller.js
 import express from "express";
-import { findRestaurantById, createMission } from "../repositories/mission.repository.js";
-import { listMissionsByRestaurant } from "../repositories/mission.repository.js";
+
+import {
+  findRestaurantById,
+  createMission,
+  listMissionsByRestaurant,
+} from "../repositories/mission.repository.js";
+
+
 const router = express.Router();
 
 /**
@@ -18,6 +24,7 @@ router.post("/restaurant/:id/mission", async (req, res) => {
       return res.status(404).json({
         success: false,
         message: "가게가 존재하지 않습니다.",
+        data: null,
       });
     }
 
@@ -25,12 +32,14 @@ router.post("/restaurant/:id/mission", async (req, res) => {
     res.status(201).json({
       success: true,
       mission_id: mission.mission_id,
+      data: { mission_id: mission.mission_id },
     });
   } catch (err) {
     console.error("❌ 미션 추가 오류:", err);
     res.status(500).json({
       success: false,
       message: "서버 오류",
+      data: null,
     });
   }
 });
@@ -60,13 +69,15 @@ router.get("/restaurants/:restaurantId/missions", async (req, res) => {
 
     res.status(200).json({
       success: true,
+      message: "미션 목록 조회 성공",
       data: formatted,
     });
   } catch (err) {
-    console.error("❌ 미션 목록 조회 오류:", err);
+    console.error("미션 목록 조회 오류:", err);
     res.status(500).json({
       success: false,
       message: "서버 오류",
+      data: null,
     });
   }
 });
