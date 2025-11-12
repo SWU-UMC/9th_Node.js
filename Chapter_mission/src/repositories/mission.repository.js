@@ -1,17 +1,15 @@
 import { prisma } from "../db.config.js";
 
-// 미션 등록
-export const addMission = async (missionData) => {
-  // 가게 존재 여부 확인
-  const storeExists = await prisma.store.findUnique({
+// 가게 존재 여부 확인
+export const getStoreById = async (storeId) => {
+  return prisma.store.findUnique({
     where: { id: missionData.storeId },
     select: { id: true },
   });
+}
 
-  if (!storeExists) {
-    throw new Error("해당 가게가 존재하지 않습니다.");
-  }
-
+// 미션 등록
+export const addMission = async (missionData) => {
   // 미션 생성
   const mission = await prisma.mission.create({
     data: {
@@ -31,7 +29,7 @@ export const addMission = async (missionData) => {
 export const getMissionsByStoreId = async (storeId) => {
   try {
     const missions = await prisma.mission.findMany({
-      where: { storeId: parseInt(storeId) },
+      where: { storeId: Number(storeId) },
       orderBy: { createdAt: "desc" },
       select: {
         id: true,

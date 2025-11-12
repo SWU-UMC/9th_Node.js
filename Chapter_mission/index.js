@@ -10,6 +10,8 @@ import { handleAddReview,
 import { handleAddMission,
         handleListMissionsByStore, } from "./src/controllers/mission.controller.js";
 import { handleChallengeMission } from "./src/controllers/userMission.controller.js";
+import morgan from "morgan";
+import cookieParser from "cookie-parser";
 
 dotenv.config();
 
@@ -35,16 +37,23 @@ app.use((req, res, next) => {
   next();
 });
 
+/**
+*전역 미들웨어 등록
+*/
 app.use(cors());                            // cors 방식 허용
 app.use(express.static('public'));          // 정적 파일 접근
 app.use(express.json());                    // request의 본문을 json으로 해석할 수 있도록 함 (JSON 형태의 요청 body를 파싱하기 위함)
 app.use(express.urlencoded({ extended: false })); // 단순 객체 문자열 형태로 본문 데이터 해석
+app.use(morgan('dev'));
+app.use(cookieParser());
 
 app.get("/", (req, res) => {
   res.send("Hello World!");
 });
 
-
+/**
+ * 라우터 설정
+ */
 // 사용자
 app.post("/api/v1/users/signup", handleUserSignUp);
 app.get("/api/v1/users/:user_id/reviews", handleListUserReviews);

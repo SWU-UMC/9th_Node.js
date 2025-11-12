@@ -18,8 +18,8 @@ export const handleUserSignUp = async (req, res, next) => {
     // 서비스 레이어 호출
     const user = await userSignUp(userData);
 
-    res.status(StatusCodes.OK).success(user); // 성공 응답
+    res.status(StatusCodes.CREATED).success(user); // 성공 응답
   } catch (error) {
-    next(error); // 실패 응답x
+    next(error); // 실패 응답 전역 에러 핸들러
   }
 };

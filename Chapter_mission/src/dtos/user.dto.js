@@ -19,7 +19,7 @@ export const responseFromUser = (user) => {
   if (!user) return null;
 
   return {
-    id: user.id,
+    id: user.id != null ? String(user.id) : null,
     email: user.email,
     name: user.name,
     nickname: user.nickname,

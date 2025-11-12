@@ -23,7 +23,7 @@ export const addUserMission = async (userId, missionId) => {
   });
 };
 
-// 생성된 도전 정보 조회
+// 생성된 도전 정보 조회(삭제)
 export const getUserMissionById = async (id) => {
   return await prisma.userMission.findUnique({
     where: { id },

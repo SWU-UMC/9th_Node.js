@@ -15,13 +15,12 @@ export const responseFromReview = (review) => {
   if (!review) return null;
   return {
     id: review.id,
-    storeId: review.store_id,
-    userMissionId: review.user_mission_id,
+    userMissionId: review.userMissionId,
     body: review.body,
     score: review.score,
-    imageCount: review.image_count,
-    createdAt: review.created_at,
-    updatedAt: review.updated_at,
+    imageCount: review.imageCount,
+    createdAt: review.createdAt,
+    updatedAt: review.updatedAt,
   };
 };
 
