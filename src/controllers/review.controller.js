@@ -1,15 +1,17 @@
 import { StatusCodes } from "http-status-codes";
-import { addReviewToStore, listMyReviews } from "../services/review.service.js";
+import {
+  addReviewToStore,
+  listMyReviews,
+  listReviewsByUserId,
+} from "../services/review.service.js";
 import { responseFromReview } from "../dtos/review.dto.js";
 
-export const handleAddReview = async (req, res) => {
+export const handleAddReview = async (req, res, next) => {
   try {
     const review = await addReviewToStore(req.body, Number(req.params.storeId));
-    res
-      .status(StatusCodes.CREATED)
-      .json({ result: responseFromReview(review) });
-  } catch (e) {
-    res.status(StatusCodes.BAD_REQUEST).json({ message: e.message });
+    res.status(StatusCodes.CREATED).success(responseFromReview(review));
+  } catch (err) {
+    next(err);
   }
 };
 
@@ -23,7 +25,7 @@ export const handleListMyReviews = async (req, res, next) => {
       typeof req.query.take === "string" ? Number(req.query.take) : 5;
 
     const result = await listMyReviews(userIdFromAuth, cursor, take);
-    res.status(StatusCodes.OK).json(result);
+    res.status(StatusCodes.OK).success(result);
   } catch (err) {
     next(err);
   }
@@ -38,8 +40,8 @@ export const handleListUserReviews = async (req, res, next) => {
     const take =
       typeof req.query.take === "string" ? Number(req.query.take) : 5;
 
-    const result = await listMyReviews(userId, cursor, take);
-    res.status(StatusCodes.OK).json(result);
+    const result = await listReviewsByUserId(userId, cursor, take); // ← 교체
+    res.status(StatusCodes.OK).success(result);
   } catch (err) {
     next(err);
   }

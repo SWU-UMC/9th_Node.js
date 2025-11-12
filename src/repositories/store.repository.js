@@ -1,12 +1,12 @@
 import { prisma } from "../db.config.js";
 
-export const createStoreInDB = async (data) => {
+export const createStoreInDB = async ({ regionId, name, address }) => {
   const created = await prisma.store.create({
     data: {
-      name: data.name,
-      address: data.address ?? "",
+      name,
+      address: address ?? "",
       score: 0,
-      region: { connect: { id: Number(data.region_id) } },
+      region: { connect: { id: BigInt(regionId) } },
     },
     select: { id: true },
   });
@@ -15,7 +15,7 @@ export const createStoreInDB = async (data) => {
 
 export const getStoreById = async (storeId) => {
   return prisma.store.findUnique({
-    where: { id: Number(storeId) },
+    where: { id: BigInt(storeId) },
   });
 };
 
@@ -31,9 +31,12 @@ export const getAllStoreReviews = async (storeId, cursor) => {
       store: true,
       user: true,
     },
-    where: { storeId: storeId, id: { gt: cursor } },
+    where: {
+      storeId: BigInt(storeId),
+      ...(cursor > 0 ? { id: { gt: BigInt(cursor) } } : {}),
+    },
     orderBy: { id: "asc" },
-    take: 5,
+    take,
   });
 
   return reviews;

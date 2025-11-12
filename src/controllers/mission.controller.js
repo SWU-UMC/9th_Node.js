@@ -12,29 +12,25 @@ import {
 import { serialize } from "../utils/serialize.js";
 
 // POST /stores/:storeId/missions
-export const handleAddMission = async (req, res) => {
+export const handleAddMission = async (req, res, next) => {
   try {
     const mission = await addMissionToStore(
       req.body,
       Number(req.params.storeId)
     );
-    res
-      .status(StatusCodes.CREATED)
-      .json({ result: responseFromMission(mission) });
-  } catch (e) {
-    res.status(StatusCodes.BAD_REQUEST).json({ message: e.message });
+    res.status(StatusCodes.CREATED).success(responseFromMission(mission));
+  } catch (err) {
+    next(err);
   }
 };
 
 // POST /missions/:missionId/challenge
-export const handleChallengeMission = async (req, res) => {
+export const handleChallengeMission = async (req, res, next) => {
   try {
     const um = await challengeMission(Number(req.params.missionId));
-    res
-      .status(StatusCodes.CREATED)
-      .json({ result: responseFromUserMission(um) });
-  } catch (e) {
-    res.status(StatusCodes.BAD_REQUEST).json({ message: e.message });
+    res.status(StatusCodes.CREATED).success(responseFromUserMission(um));
+  } catch (err) {
+    next(err);
   }
 };
 
@@ -52,7 +48,7 @@ export const handleListUserMissions = async (req, res, next) => {
     const last = rows[rows.length - 1];
     const nextCursor = last ? Number(last.missionId ?? 0) : null;
 
-    res.status(StatusCodes.OK).json({
+    res.status(StatusCodes.OK).success({
       data: serialize(rows),
       pagination: { cursor: nextCursor },
     });
@@ -68,7 +64,7 @@ export const handleCompleteUserMission = async (req, res, next) => {
 
     const row = await markMissionCompleted(userId, missionId);
 
-    res.status(StatusCodes.OK).json({ result: serialize(row) });
+    res.status(StatusCodes.OK).success(serialize(row));
   } catch (err) {
     next(err);
   }
