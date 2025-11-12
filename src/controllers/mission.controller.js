@@ -27,6 +27,5 @@ export const handleChallengeMission = async (req, res, next) => {
   const challengeData = bodyToChallenge(req.body, req.params);
   const newChallenge = await challengeMission(challengeData);
 
-  // ✅ 성공 응답 통일
   res.status(StatusCodes.CREATED).success(newChallenge);
 };
