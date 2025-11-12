@@ -7,6 +7,11 @@ import {
   listMissionsByRestaurant,
 } from "../repositories/mission.repository.js";
 
+import {
+  RestaurantNotFoundError,
+  MissionCreationError,
+} from "../errors.js"; // 추가! error.js
+
 
 const router = express.Router();
 
@@ -21,26 +26,18 @@ router.post("/restaurant/:id/mission", async (req, res) => {
   try {
     const restaurant = await findRestaurantById(id);
     if (!restaurant) {
-      return res.status(404).json({
-        success: false,
-        message: "가게가 존재하지 않습니다.",
-        data: null,
-      });
+      //  커스텀 에러 던지기 (전역 핸들러로 전달)
+      throw new RestaurantNotFoundError("가게가 존재하지 않습니다.", { id });
     }
 
     const mission = await createMission(id, data);
-    res.status(201).json({
-      success: true,
-      mission_id: mission.mission_id,
+     // 통일된 응답 포맷 사용 -> 리펙토링 진행.
+     res.status(201).success({
+      message: "미션이 성공적으로 추가되었습니다.",
       data: { mission_id: mission.mission_id },
     });
   } catch (err) {
-    console.error("❌ 미션 추가 오류:", err);
-    res.status(500).json({
-      success: false,
-      message: "서버 오류",
-      data: null,
-    });
+    next(err); // 전역 에러 핸들러로 전달 -> error.js에 해당 내용 작성됨.
   }
 });
 
@@ -72,13 +69,8 @@ router.get("/restaurants/:restaurantId/missions", async (req, res) => {
       message: "미션 목록 조회 성공",
       data: formatted,
     });
-  } catch (err) {
-    console.error("미션 목록 조회 오류:", err);
-    res.status(500).json({
-      success: false,
-      message: "서버 오류",
-      data: null,
-    });
+  }  catch (err) {
+    next(err);
   }
 });
 

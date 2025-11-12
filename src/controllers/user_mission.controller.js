@@ -5,6 +5,10 @@ import {
   completeUserMission,
   listInProgressMissionsByUser,
 } from "../repositories/user_mission.repository.js";
+import {
+  UserMissionStartError,
+  UserMissionCompleteError,
+} from "../errors.js"; //에러 - 리펙토링 진행함.
 
 const router = express.Router();
 
@@ -17,17 +21,19 @@ router.post("/user/:userId/mission/:missionId", async (req, res) => {
 
   try {
     const mission = await startUserMission(userId, missionId);
+
+    if (!mission) {
+      throw new UserMissionStartError("미션 도전 시작에 실패했습니다.", { userId, missionId });
+    }
+
+    
     res.status(201).json({
       success: true,
       message: "미션 도전이 시작되었습니다!",
       user_mission_id: mission.user_mission_id,
     });
   } catch (err) {
-    console.error("❌ 미션 도전 오류:", err);
-    res.status(500).json({
-      success: false,
-      message: "서버 오류",
-    });
+    next(err);
   }
 });
 
@@ -43,6 +49,10 @@ router.patch("/user_mission/:id/complete", async (req, res) => {
   try {
     const result = await completeUserMission(id);
 
+    if (!result) {
+      throw new UserMissionCompleteError("미션 완료 처리에 실패했습니다.", { user_mission_id: id });
+    }
+
     res.json({
       success: true,
       message: `미션 완료! ${result.mission.reward_point}P 지급 완료 🎉`,
@@ -56,11 +66,7 @@ router.patch("/user_mission/:id/complete", async (req, res) => {
       },
     });
   } catch (err) {
-    console.error("❌ 미션 완료 오류:", err);
-    res.status(500).json({
-      success: false,
-      message: "서버 오류",
-    });
+    next(err);
   }
 });
 
@@ -92,11 +98,7 @@ router.get("/users/:userId/missions/in-progress", async (req, res) => {
       data: formatted,
     });
   } catch (err) {
-    console.error("❌ 진행 중 미션 조회 오류:", err);
-    res.status(500).json({
-      success: false,
-      message: "서버 오류",
-    });
+    next(err);
   }
 });
 

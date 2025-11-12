@@ -3,7 +3,7 @@ import express from "express";
 import axios from "axios"; // 외부 API (현재 미사용)
 import { prisma } from "../db.config.js"; 
 import { findReviewsByUserId, listStoreReviews } from "../repositories/review.repository.js"; // ✅ Repository import
-
+import { ReviewCreationError, ReviewNotFoundError } from "../errors.js"; //에러 관리
 const router = express.Router();
 
 
@@ -26,15 +26,19 @@ router.post("/review", async (req, res) => {
         photo,
       },
     });
+    if (!newReview) {
+      throw new ReviewCreationError("리뷰 작성에 실패했습니다.", req.body);
+    }
 
-    res.status(201).json({
-      success: true,
-      review_id: newReview.review_id,
-      verified_store: restaurant_name,
+    res.status(201).success({
+      message: "리뷰가 성공적으로 등록되었습니다.",
+      data: {
+        review_id: newReview.review_id,
+        verified_store: restaurant_name,
+      },
     });
   } catch (err) {
-    console.error("❌ 리뷰 등록 오류:", err);
-    res.status(500).json({ success: false, message: "서버 오류" });
+    next(err);
   }
 });
 
@@ -49,10 +53,17 @@ router.get("/v1/stores/:storeId/reviews", async (req, res) => {
       typeof req.query.cursor === "string" ? parseInt(req.query.cursor) : 0;
 
     const reviews = await listStoreReviews(storeId, cursor);
-    res.status(200).json({ success: true, data: reviews });
+    
+    if (!reviews.length) {
+      throw new ReviewNotFoundError("해당 가게의 리뷰가 존재하지 않습니다.", { storeId });
+    }
+
+    res.status(200).success({
+      message: "리뷰 목록 조회 성공",
+      data: reviews,
+    });
   } catch (err) {
-    console.error("리뷰 조회 오류:", err);
-    res.status(500).json({ success: false, message: "서버 오류" });
+    next(err);
   }
 });
 
@@ -67,7 +78,7 @@ router.get("/users/:userId/reviews", async (req, res) => {
     const reviews = await findReviewsByUserId(userId);
 
     if (!reviews.length) {
-      return res.status(404).json({ success: false, message: "작성한 리뷰가 없습니다." });
+      throw new ReviewNotFoundError("작성한 리뷰가 없습니다.", { userId });
     }
 
     const formatted = reviews.map((r) => ({
@@ -83,48 +94,10 @@ router.get("/users/:userId/reviews", async (req, res) => {
     }));
 
     res.status(200).json({ success: true, data: formatted });
-  } catch (err) {
-    console.error("리뷰 조회 오류:", err);
-    res.status(500).json({ success: false, message: "서버 오류" });
+  }  catch (err) {
+    next(err);
   }
 });
 export default router;
 
-    //이전 프리즈마 이전 코드들은 모두 주석처리함.
-    // 네이버 지도에서 가게 존재 여부 확인
-    // const query = encodeURIComponent(restaurant_name);
-    // const naverUrl = `https://openapi.naver.com/v1/search/local.json?query=${query}&display=1`;
-
-    // const naverRes = await axios.get(naverUrl, {
-    //   headers: {
-    //     "X-Naver-Client-Id": NAVER_CLIENT_ID,
-    //     "X-Naver-Client-Secret": NAVER_CLIENT_SECRET,
-    //   },
-    // });
-
-    // 검색 결과가 없으면 실제 존재하지 않는 가게라고 판단 -> 네이버가 가장 빠르게 정보 반영을 하기에 이런 방법으로 생각했습니다!
-    // if (!naverRes.data.items || naverRes.data.items.length === 0) {
-    //   return res.status(400).json({
-    //     success: false,
-    //     message: "실제 지도에서 해당 가게를 찾을 수 없습니다.",
-    //   });
-    // }
-
-    // 존재하면 DB에 리뷰 등록
-//     const [result] = await pool.query(
-//       `INSERT INTO mission_review (mission_id, restaurant_id, user_id, content, rating, photo)
-//        VALUES (?, ?, ?, ?, ?, ?)`,
-//       [mission_id, restaurant_id, user_id, content, rating, photo]
-//     );
-
-//     res.status(201).json({
-//         success: true,
-//         review_id: result.insertId,
-//         verified_store: restaurant_name, 
-//       });
-//   } catch (err) {
-//     console.error(err);
-//     res.status(500).json({ success: false, message: "서버 오류" });
-//   }
-// });
-
+ 
