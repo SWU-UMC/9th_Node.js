@@ -1,11 +1,17 @@
 // src/index.js
 import express from "express";
 import dotenv from "dotenv";
+import morgan from "morgan";          // 추가함.  -> m install morgan cookie-parser 실습
+import cookieParser from "cookie-parser";  // 추가
+
 
 // .env 로드
 dotenv.config();
 
 const app = express();
+
+app.use(morgan("dev"));         // 요청 로그 콘솔 출력
+app.use(cookieParser());        // 쿠키 파싱
 app.use(express.json());
 
 // 라우터 import
