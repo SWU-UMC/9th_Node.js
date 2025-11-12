@@ -22,25 +22,28 @@ model mission {
   @@index([restaurant_id], map: "restaurant_id")
 }
 
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+//피드백 바탕으로 수정! 미션,레스토랑,유저 id는 FK으로 널 허용하면 큰일남 널 비허용으로 수정함.
 model mission_review {
   review_id     Int         @id @default(autoincrement())
-  mission_id    Int?
-  restaurant_id Int?
-  user_id       Int?
+  mission_id    Int
+  restaurant_id Int
+  user_id       Int
   content       String?     @db.Text
   rating        Float?      @db.Float
   photo         String?     @db.VarChar(255)
   owner_reply   String?     @db.Text
   created_at    DateTime?   @default(now()) @db.DateTime(0)
-  mission       mission?    @relation(fields: [mission_id], references: [mission_id], onDelete: NoAction, onUpdate: NoAction, map: "mission_review_ibfk_1")
-  restaurant    restaurant? @relation(fields: [restaurant_id], references: [restaurant_id], onDelete: NoAction, onUpdate: NoAction, map: "mission_review_ibfk_2")
-  user          user?       @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "mission_review_ibfk_3")
+
+  // 외래키 NULL 허용 X
+  mission       mission     @relation(fields: [mission_id], references: [mission_id], onDelete: NoAction, onUpdate: NoAction, map: "mission_review_ibfk_1")
+  restaurant    restaurant  @relation(fields: [restaurant_id], references: [restaurant_id], onDelete: NoAction, onUpdate: NoAction, map: "mission_review_ibfk_2")
+  user          user        @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "mission_review_ibfk_3")
 
   @@index([mission_id], map: "mission_id")
   @@index([restaurant_id], map: "restaurant_id")
   @@index([user_id], map: "user_id")
 }
+
 
 model point {
   point_id    Int       @id @default(autoincrement())
