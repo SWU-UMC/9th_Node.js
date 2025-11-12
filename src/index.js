@@ -1,10 +1,12 @@
 import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
-import { addMissionController, getMissionsByRestaurantController } from "./controllers/mission.controller.js";
+import cookieParser from 'cookie-parser';
+import morgan from "morgan";
+import { addMissionController } from "./controllers/mission.controller.js";
 import { handleUserSignUp } from "./controllers/user.controller.js";
-import { regionForRestaurant, handleListRestaurantReviews } from "./controllers/restaurant.controller.js";
-import { addReviewController } from "./controllers/review.controller.js";
+import { regionForRestaurant, handleListRestaurantReviews, getMissionsByRestaurantController } from "./controllers/restaurant.controller.js";
+import { addReviewController, handleUserReviewList  } from "./controllers/review.controller.js";
 import { startMissionController, handleOngoingMissions } from "./controllers/user_mission.controller.js";
 
 dotenv.config();
@@ -13,27 +15,83 @@ const app = express();
 const port = process.env.PORT;
 
 app.use(cors()); // cors 방식 허용
+app.use(morgan('dev'));
+app.use(cookieParser()); 
 app.use(express.static("public")); // 정적 파일 접근
 app.use(express.json()); // request의 본문을 json으로 해석할 수 있도록 함 (JSON 형태의 요청 body를 파싱하기 위함)
 app.use(express.urlencoded({ extended: false })); // 단순 객체 문자열 형태로 본문 데이터 해석
+
+/**
+ * 공통 응답을 사용할 수 있는 헬퍼 함수 등록
+ */
+app.use((req, res, next) => {
+  res.success = (success) => {
+    return res.json({ resultType: "SUCCESS", error: null, success });
+  };
+
+  res.error = ({ errorCode = "unknown", reason = null, data = null }) => {
+    return res.json({
+      resultType: "FAIL",
+      error: { errorCode, reason, data },
+      success: null,
+    });
+  };
+
+  next();
+});
 
 app.get("/", (req, res) => {
   res.send("Hello World!");
 });
 
+// 쿠키 만드는 라우터 
+app.get('/setcookie', (req, res) => {
+    // 'myCookie'라는 이름으로 'hello' 값을 가진 쿠키를 생성
+    res.cookie('myCookie', 'hello', { maxAge: 60000 }); // 60초간 유효
+    res.send('쿠키가 생성되었습니다!');
+});
+
+// 쿠키 읽는 라우터 
+app.get('/getcookie', (req, res) => {
+    // cookie-parser 덕분에 req.cookies 객체에서 바로 꺼내 쓸 수 있음
+    const myCookie = req.cookies.myCookie; 
+    
+    if (myCookie) {
+        console.log(req.cookies); // { myCookie: 'hello' }
+        res.send(`당신의 쿠키: ${myCookie}`);
+    } else {
+        res.send('쿠키가 없습니다.');
+    }
+});
+
 app.post("/api/users/signup", handleUserSignUp);
 app.post("/api/restaurants", regionForRestaurant);
 app.post("/api/restaurants/:restaurant_id/missions", addMissionController);
-app.post("/api/restaurants/:mission_id/reviews", addReviewController);
+app.post("/api/restaurants/:restaurant_id/reviews", addReviewController);
 app.post(
   "/api/missions/:mission_id/start",
   startMissionController
 );
 
 app.get("/api/restaurants/:restaurant_id/reviews", handleListRestaurantReviews);
-app.get("/api/users/:user_id/reviews", handleListRestaurantReviews);
+app.get("/api/users/:user_id/reviews", handleUserReviewList);
 app.get("/api/restaurants/:restaurant_id/missions", getMissionsByRestaurantController);
 app.get("/api/users/:user_id/ongoing-missions", handleOngoingMissions);
+
+/**
+ * 전역 오류를 처리하기 위한 미들웨어
+ */
+app.use((err, req, res, next) => {
+  if (res.headersSent) {
+    return next(err);
+  }
+
+  res.status(err.statusCode || 500).error({
+    errorCode: err.errorCode || "unknown",
+    reason: err.reason || err.message || null,
+    data: err.data || null,
+  });
+});
 
 
 app.listen(port, () => {
