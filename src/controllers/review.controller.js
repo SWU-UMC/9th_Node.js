@@ -7,14 +7,8 @@ export const handleAddReview = async (req, res, next) => {
   console.log("params (restaurantId):", req.params);
   console.log("body (userId, content, rating):", req.body);
 
-  try {
-    const reviewData = bodyToReview(req.body, req.params);
+  const reviewData = bodyToReview(req.body, req.params);
+  const newReview = await createReview(reviewData);
 
-    const newReview = await createReview(reviewData);
-
-    res.status(StatusCodes.CREATED).json({ result: newReview });
-
-  } catch (err) {
-    res.status(StatusCodes.BAD_REQUEST).json({ error: err.message });
-  }
+  res.status(StatusCodes.CREATED).success(newReview);
 };

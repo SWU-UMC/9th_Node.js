@@ -13,14 +13,10 @@ export const handleAddMission = async (req, res, next) => {
   console.log("params (restaurantId):", req.params);
   console.log("body (point, content, deadline):", req.body);
 
-  try {
-    const missionData = bodyToMission(req.body, req.params);
-    const newMission = await createMission(missionData);
-    res.status(StatusCodes.CREATED).json({ result: newMission });
+  const missionData = bodyToMission(req.body, req.params);
+  const newMission = await createMission(missionData);
 
-  } catch (err) {
-    res.status(StatusCodes.BAD_REQUEST).json({ error: err.message });
-  }
+  res.status(StatusCodes.CREATED).success(newMission);
 };
 
 export const handleChallengeMission = async (req, res, next) => {
@@ -28,12 +24,9 @@ export const handleChallengeMission = async (req, res, next) => {
   console.log("params (missionId):", req.params);
   console.log("body (userId):", req.body);
 
-  try {
-    const challengeData = bodyToChallenge(req.body, req.params);
-    const newChallenge = await challengeMission(challengeData);
+  const challengeData = bodyToChallenge(req.body, req.params);
+  const newChallenge = await challengeMission(challengeData);
 
-    res.status(StatusCodes.CREATED).json({ result: newChallenge });
-  } catch (err) {
-    res.status(StatusCodes.BAD_REQUEST).json({ error: err.message });
-  }
+  // ✅ 성공 응답 통일
+  res.status(StatusCodes.CREATED).success(newChallenge);
 };

@@ -14,14 +14,21 @@ import {
 import { getRestaurantById } from "../repositories/restaurant.repository.js";
 import { getUser } from "../repositories/user.repository.js";
 
+import {
+  MissionRestaurantNotFoundError,
+  MissionNotFoundError,
+  MissionUserNotFoundError,
+  MissionAlreadyChallengedError,
+} from "../error.js";
+
 export const createMission = async (data) => {
   // 가게 존재 여부 검증 
   const restaurant = await prisma.restaurant.findUnique({
     where: { id: data.restaurantId },
   });
   if (restaurant === null) {
-    throw new Error(
-      `[Validation Error] 존재하지 않는 가게입니다. (ID: ${data.restaurantId})`
+    throw new RestaurantNotFoundError(
+      `존재하지 않는 가게입니다. (ID: ${data.restaurantId})`
     );
   }
 
@@ -37,15 +44,15 @@ export const challengeMission = async (data) => {
     where: { id: missionId },
   });
   if (mission === null) {
-    throw new Error(
-      `[Validation Error] 존재하지 않는 미션입니다. (ID: ${missionId})`
+    throw new MissionNotFoundError(
+      `존재하지 않는 미션입니다. (ID: ${missionId})`
     );
   }
 
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (user === null) {
-    throw new Error(
-      `[Validation Error] 존재하지 않는 사용자입니다. (ID: ${userId})`
+    throw new MissionUserNotFoundError(
+      `존재하지 않는 사용자입니다. (ID: ${userId})`
     );
   }
 
