@@ -12,23 +12,25 @@ export const startUserMission = async (userId, missionId) => {
 };
 
 // 미션 완료 + 포인트 지급
+// 이전에는 중간에 에러 발생시 하나만 성공하는 문제 있음. 프리즈마, 트랜잭션으로 수정하면,
+// 위 오류를 방지
 export const completeUserMission = async (userMissionId) => {
-  // 1️⃣ 미션 상태 변경 및 관련 데이터 포함
-  const updated = await prisma.user_mission.update({
-    where: { user_mission_id: Number(userMissionId) },
-    data: {
-      status: "completed",
-      completed_at: new Date(),
-    },
-    include: {
-      user: true,      
-      mission: true,   
-    },
-  });
+  return await prisma.$transaction(async (tx) => {
+    // 1 미션 상태 변경 및 관련 데이터 포함
+    const updated = await tx.user_mission.update({
+      where: { user_mission_id: Number(userMissionId) },
+      data: {
+        status: "completed",
+        completed_at: new Date(),
+      },
+      include: {
+        user: true,
+        mission: true,
+      },
+    });
 
-  // 포인트 중복 방지.
-  if (updated.status === "completed") {
-    const alreadyRewarded = await prisma.point.findFirst({
+    //  포인트 중복 방지
+    const alreadyRewarded = await tx.point.findFirst({
       where: {
         user_id: updated.user_id,
         description: {
@@ -36,22 +38,24 @@ export const completeUserMission = async (userMissionId) => {
         },
       },
     });
+
     if (alreadyRewarded) {
-      console.log("⚠️ 이미 포인트 지급된 미션입니다.");
+      console.log(" 이미 포인트 지급된 미션입니다.");
       return updated;
     }
-  }
 
-  //사용자 포인트 지급
-  await prisma.point.create({
-    data: {
-      user_id: updated.user_id,
-      point_value: updated.mission.reward_point,
-      description: `미션 ${updated.mission_id} 완료 보상`,
-    },
+    // 사용자 포인트 지급
+    await tx.point.create({
+      data: {
+        user_id: updated.user_id,
+        point_value: updated.mission.reward_point,
+        description: `미션 ${updated.mission_id} 완료 보상`,
+      },
+    });
+
+    
+    return updated;
   });
-
-  return updated;
 };
 /**
  * 진행 중인 미션 목록 조회
