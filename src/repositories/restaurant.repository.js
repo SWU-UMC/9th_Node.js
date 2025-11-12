@@ -1,5 +1,9 @@
 import { prisma } from "../db.config.js";
 
+import {
+  InternalServerError,
+} from "../error.js";
+
 export const addRestaurant = async (data) => {
   try {
     const newRestaurant = await prisma.restaurant.create({
@@ -23,7 +27,7 @@ export const addRestaurant = async (data) => {
       throw new Error(`[Validation Error] 존재하지 않는 지역 또는 카테고리 ID입니다.`);
     }
     console.error(err);
-    throw new Error(`DB 오류가 발생했습니다: ${err.message}`);
+    throw new InternalServerError(`DB 오류가 발생했습니다: ${err.message}`);
   }
 };
 

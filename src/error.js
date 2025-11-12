@@ -43,6 +43,18 @@ export class UserNotFoundError extends Error {
   }
 }
 
+// DB 오류
+export class InternalServerError extends Error {
+  errorCode = "E500"; 
+  statusCode = 500; 
+
+  constructor(reason, data) {
+    super(reason || "서버 내부 오류가 발생했습니다.");
+    this.reason = reason || "서버 내부 오류가 발생했습니다.";
+    this.data = data;
+  }
+}
+
 
 // 이미 도전중인 미션
 export class MissionAlreadyChallengedError extends Error {
