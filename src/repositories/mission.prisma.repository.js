@@ -90,8 +90,8 @@ export class MissionRepository {
       return await prisma.userMission.update({
         where: {
           user_mission_unique: {
-            userId: parseInt(userId),
-            missionId: parseInt(missionId)
+            userId: userId,
+            missionId: missionId
           }
         },
         data: data,

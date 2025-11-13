@@ -57,16 +57,28 @@ model StoreReview {
   @@map("store_review")
 }
 
-model Store {
-  id        Int           @id @default(autoincrement())
-  name      String        @db.VarChar(100)
-  address   String        @db.VarChar(255)
-  region    String        @db.VarChar(100)
-  rating    Float?        @default(0)
-  reviews   StoreReview[]
+model Region {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique @db.VarChar(100)
+  stores    Store[]
   missions  Mission[]
-  createdAt DateTime      @default(now()) @map("created_at") @db.DateTime(0)
-  updatedAt DateTime      @updatedAt @map("updated_at") @db.DateTime(0)
+  createdAt DateTime  @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt DateTime  @updatedAt @map("updated_at") @db.DateTime(0)
+
+  @@map("region")
+}
+
+model Store {
+  id          Int           @id @default(autoincrement())
+  name        String        @db.VarChar(100)
+  address     String        @db.VarChar(255)
+  regionId    Int?          @map("region_id")
+  region      Region?       @relation(fields: [regionId], references: [id])
+  rating      Float?        @default(0)
+  reviews     StoreReview[]
+  missions    Mission[]
+  createdAt   DateTime      @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt   DateTime      @updatedAt @map("updated_at") @db.DateTime(0)
 
   @@map("store")
 }
@@ -74,11 +86,13 @@ model Store {
 model Mission {
   id          Int          @id @default(autoincrement())
   storeId     Int          @map("store_id")
+  regionId    Int?         @map("region_id")
   content     String       @db.Text
   reward      Int
   deadline    DateTime?    @db.DateTime(0)
   status      String       @default("ACTIVE") @db.VarChar(20)
   store       Store        @relation(fields: [storeId], references: [id])
+  region      Region?      @relation(fields: [regionId], references: [id])
   userMissions UserMission[]
   createdAt   DateTime     @default(now()) @map("created_at") @db.DateTime(0)
   updatedAt   DateTime     @updatedAt @map("updated_at") @db.DateTime(0)

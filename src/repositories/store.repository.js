@@ -29,18 +29,21 @@ export const findStoreById = async (storeId) => {
 
 /**
  * 가게의 평균 평점을 업데이트.
+ * @param {number|string} storeId - 가게 ID
+ * @param {import('@prisma/client').Prisma.TransactionClient} [tx] - 트랜잭션 클라이언트 (선택사항)
+ * @returns {Promise<{averageRating: number, reviewCount: number}>} 업데이트된 평점 정보
  */
-export const updateStoreRating = async (storeId) => {
+export const updateStoreRating = async (storeId, tx = prisma) => {
     try {
         console.log(`Updating rating for store ${storeId}`);
         
         // 해당 가게의 모든 리뷰의 평점 평균 계산
-        const result = await prisma.$transaction(async (tx) => {
-            return await tx.storeReview.aggregate({
-                where: { storeId: parseInt(storeId) },
-                _avg: { rating: true },
-                _count: true
-            });
+        const result = await tx.storeReview.aggregate({
+            where: { 
+                storeId: typeof storeId === 'string' ? parseInt(storeId) : storeId 
+            },
+            _avg: { rating: true },
+            _count: true
         });
 
         const averageRating = result._avg.rating || 0;
@@ -101,6 +104,28 @@ export const getAllStoreReviews = async (storeId, cursor) => {
 /**
  * 가게 리뷰 생성 (트랜잭션 없이 단순 생성)
  */
+/**
+ * 가게의 미션 목록 조회
+ * @param {number} storeId - 가게 ID
+ * @returns {Promise<Array>} 미션 목록
+ */
+export const getStoreMissions = async (storeId) => {
+    try {
+        const missions = await prisma.mission.findMany({
+            where: {
+                storeId: parseInt(storeId)
+            },
+            orderBy: {
+                createdAt: 'desc'
+            }
+        });
+        return missions;
+    } catch (error) {
+        console.error('Error getting store missions:', error);
+        throw error;
+    }
+};
+
 export const createStoreReview = async (reviewData) => {
     const { content, rating, userId, storeId } = reviewData;
     

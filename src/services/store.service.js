@@ -60,6 +60,30 @@ export const getStoreById = async (storeId) => {
 /**
  * 가게 리뷰 생성 서비스
  */
+/**
+ * 가게의 미션 목록 조회
+ * @param {number} storeId - 가게 ID
+ * @returns {Promise<Array>} 미션 목록
+ */
+export const getStoreMissions = async (storeId) => {
+    try {
+        const missions = await storeRepository.getStoreMissions(storeId);
+        return missions;
+    } catch (error) {
+        console.error('Error getting store missions:', error);
+        throw error;
+    }
+};
+
+/**
+ * 리뷰 추가 (handleAddReview로도 사용 가능)
+ * @param {Object} reviewData - 리뷰 데이터
+ * @returns {Promise<Object>} 생성된 리뷰 정보
+ */
+export const handleAddReview = async (reviewData) => {
+  return await createStoreReview(reviewData);
+};
+
 export const createStoreReview = async (reviewData) => {
   try {
     console.log('Creating review with data:', reviewData);
