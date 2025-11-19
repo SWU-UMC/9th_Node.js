@@ -16,6 +16,77 @@ const router = express.Router();
  * [POST] 회원가입 요청
  * URL: /api/users/signup
  */
+/*
+  #swagger.tags = ['User']
+  #swagger.summary = '회원가입 API'
+  #swagger.description = '이메일, 비밀번호, 닉네임 등 사용자 정보를 입력받아 회원가입을 처리합니다.'
+
+  #swagger.requestBody = {
+    required: true,
+    content: {
+      "application/json": {
+        schema: {
+          type: "object",
+          required: ["email", "password", "nickname"],
+          properties: {
+            email: { type: "string", example: "test@example.com" },
+            password: { type: "string", example: "12345678" },
+            nickname: { type: "string", example: "감자러버" }
+          }
+        }
+      }
+    }
+  }
+
+  #swagger.responses[201] = {
+    description: "회원가입 성공",
+    content: {
+      "application/json": {
+        schema: {
+          type: "object",
+          properties: {
+            resultType: { type: "string", example: "SUCCESS" },
+            error: { type: "object", nullable: true, example: null },
+            success: {
+              type: "object",
+              example: {
+                message: "회원가입 완료",
+                user: {
+                  user_id: 1,
+                  email: "test@example.com",
+                  nickname: "감자러버",
+                  created_at: "2025-01-01T10:00:00Z"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  #swagger.responses[409] = {
+    description: "이미 존재하는 이메일",
+    content: {
+      "application/json": {
+        schema: {
+          type: "object",
+          properties: {
+            resultType: { type: "string", example: "FAIL" },
+            error: {
+              type: "object",
+              example: {
+                errorCode: "DUPLICATE_EMAIL",
+                reason: "이미 존재하는 이메일입니다."
+              }
+            },
+            success: { type: "object", nullable: true, example: null }
+          }
+        }
+      }
+    }
+  }
+*/
 router.post("/users/signup", async (req, res, next) => {
   try {
     const createdUserId = await addUser(req.body);

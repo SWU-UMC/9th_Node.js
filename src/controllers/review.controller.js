@@ -12,7 +12,7 @@ const router = express.Router();
  * [POST] 리뷰 추가하기
  * URL: /api/review
  */
-router.post("/review", async (req, res) => {
+router.post("/review", async (req, res,next) => {
   const { mission_id, restaurant_id, user_id, content, rating, photo, restaurant_name } = req.body;
 
   try {
@@ -46,7 +46,90 @@ router.post("/review", async (req, res) => {
  * [GET] 특정 가게의 리뷰 목록 조회
  * URL: /api/v1/stores/:storeId/reviews
  */
-router.get("/v1/stores/:storeId/reviews", async (req, res) => {
+/*
+  #swagger.tags = ['Review']
+  #swagger.summary = '상점 리뷰 목록 조회 API'
+  #swagger.description = '특정 가게의 리뷰들을 조회합니다.'
+
+  #swagger.parameters['storeId'] = {
+    in: 'path',
+    description: '가게 ID',
+    required: true,
+    type: 'integer',
+    example: 10
+  }
+
+  #swagger.responses[200] = {
+    description: "상점 리뷰 목록 조회 성공 응답",
+    content: {
+      "application/json": {
+        schema: {
+          type: "object",
+          properties: {
+            // 6주차 공통 응답 구조
+            resultType: { type: "string", example: "SUCCESS" },
+            error: { type: "object", nullable: true, example: null },
+            success: {
+              type: "object",
+              properties: {
+                
+                // 메시지
+                message: { type: "string", example: "리뷰 목록 조회 성공" },
+
+                // 리뷰 배열 (여기서 data 배열)
+                data: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      review_id: { type: "number", example: 12 },
+                      user_id: { type: "number", example: 3 },
+                      mission_id: { type: "number", example: 5 },
+                      restaurant_id: { type: "number", example: 10 },
+                      
+                      rating: { type: "number", example: 5 },
+                      content: { type: "string", example: "정말 맛있어요!" },
+                      photo: { type: "string", nullable: true, example: null },
+
+                      created_at: { type: "string", example: "2025-01-10T10:00:00Z" },
+
+                      // 중첩 관계 (JOIN 데이터이니 optional)
+                      user: {
+                        type: "object",
+                        nullable: true,
+                        properties: {
+                          nickname: { type: "string", example: "감자왕" },
+                          profile_image: { type: "string", nullable: true }
+                        }
+                      },
+                      restaurant: {
+                        type: "object",
+                        nullable: true,
+                        properties: {
+                          restaurant_name: { type: "string", example: "감자탕 맛집" }
+                        }
+                      }
+                    }
+                  }
+                },
+
+                // 페이지네이션 (현재는 너의 API에서 제공 안 함 → optional)
+                pagination: {
+                  type: "object",
+                  nullable: true,
+                  properties: {
+                    cursor: { type: "number", nullable: true, example: 20 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+*/
+router.get("/v1/stores/:storeId/reviews", async (req, res,next) => {
   try {
     const storeId = parseInt(req.params.storeId);
     const cursor =
@@ -71,7 +154,7 @@ router.get("/v1/stores/:storeId/reviews", async (req, res) => {
  * [GET] 내가 작성한 리뷰 목록 조회
  * URL: /api/users/:userId/reviews
  */
-router.get("/users/:userId/reviews", async (req, res) => {
+router.get("/users/:userId/reviews", async (req, res,next) => {
   const { userId } = req.params;
 
   try {
@@ -98,6 +181,7 @@ router.get("/users/:userId/reviews", async (req, res) => {
     next(err);
   }
 });
+
 export default router;
 
  
