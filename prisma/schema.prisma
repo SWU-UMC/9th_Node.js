@@ -1,0 +1,102 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                  Int                 @id @default(autoincrement())
+  email               String              @unique(map: "email") @db.VarChar(255)
+  name                String              @db.VarChar(100)
+  gender              String              @db.VarChar(15)
+  birth               DateTime            @db.Date
+  address             String              @db.VarChar(255)
+  detailAddress       String?             @map("detail_address") @db.VarChar(255)
+  phoneNumber         String?             @map("phone_number") @db.VarChar(15)
+  userFavorCategories UserFavorCategory[]
+  storeReviews        StoreReview[]
+  userMissions        UserMission[]
+  @@map("user")
+}
+
+model FoodCategory {
+  id                  Int                 @id @default(autoincrement())
+  name                String              @db.VarChar(100)
+  userFavorCategories UserFavorCategory[]
+
+  @@map("food_category")
+}
+
+model UserFavorCategory {
+  id             Int          @id @default(autoincrement())
+  userId         Int          @map("user_id")
+  foodCategoryId Int          @map("food_category_id")
+  foodCategory   FoodCategory @relation(fields: [foodCategoryId], references: [id])
+  user           User         @relation(fields: [userId], references: [id])
+
+  @@index([foodCategoryId], map: "f_category_id")
+  @@index([userId], map: "user_id")
+  @@map("user_favor_category")
+}
+
+model StoreReview {
+  id        Int      @id @default(autoincrement())
+  content   String   @db.Text
+  rating    Float
+  userId    Int      @map("user_id")
+  storeId   Int      @map("store_id")
+  createdAt DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.DateTime(0)
+  
+  user  User  @relation(fields: [userId], references: [id])
+  store Store @relation(fields: [storeId], references: [id])
+
+  @@map("store_review")
+}
+
+model Store {
+  id        Int           @id @default(autoincrement())
+  name      String        @db.VarChar(100)
+  address   String        @db.VarChar(255)
+  region    String        @db.VarChar(100)
+  rating    Float?        @default(0)
+  reviews   StoreReview[]
+  missions  Mission[]
+  createdAt DateTime      @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt DateTime      @updatedAt @map("updated_at") @db.DateTime(0)
+
+  @@map("store")
+}
+
+model Mission {
+  id          Int          @id @default(autoincrement())
+  storeId     Int          @map("store_id")
+  content     String       @db.Text
+  reward      Int
+  deadline    DateTime?    @db.DateTime(0)
+  status      String       @default("ACTIVE") @db.VarChar(20)
+  store       Store        @relation(fields: [storeId], references: [id])
+  userMissions UserMission[]
+  createdAt   DateTime     @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt   DateTime     @updatedAt @map("updated_at") @db.DateTime(0)
+
+  @@map("mission")
+}
+
+model UserMission {
+  id          Int      @id @default(autoincrement())
+  userId      Int      @map("user_id")
+  missionId   Int      @map("mission_id")
+  status      String   @db.VarChar(20)
+  completedAt DateTime? @map("completed_at") @db.Timestamp(0)
+  user        User     @relation(fields: [userId], references: [id])
+  mission     Mission  @relation(fields: [missionId], references: [id])
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  @@unique([userId, missionId], name: "user_mission_unique")
+  @@map("user_mission")
+}

@@ -1,0 +1,5 @@
+-- AlterTable
+ALTER TABLE `user_mission` ADD COLUMN `completed_at` TIMESTAMP(0) NULL,
+    ALTER COLUMN `status` DROP DEFAULT,
+    MODIFY `created_at` TIMESTAMP(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0),
+    MODIFY `updated_at` TIMESTAMP(0) NOT NULL;
