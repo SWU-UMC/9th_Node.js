@@ -76,11 +76,7 @@ export const handleAddMission = async (req, res, next) => {
             deadline 
         });
         
-        res.status(StatusCodes.CREATED).json({
-            success: true,
-            message: '미션이 성공적으로 추가되었습니다.',
-            data: result
-        });
+        res.success(result, '미션이 성공적으로 추가되었습니다.', StatusCodes.CREATED);
     } catch (error) {
         next(error);
     }
@@ -109,10 +105,7 @@ export const getUserMissions = async (req, res, next) => {
         const userId = parseInt(req.params.userId);
         const missions = await missionService.getUserMissions(userId);
         
-        res.status(StatusCodes.OK).json({
-            success: true,
-            data: missions
-        });
+        res.success(missions);
     } catch (error) {
         next(error);
     }
@@ -148,11 +141,7 @@ export const completeUserMission = async (req, res, next) => {
         const { userId, missionId } = req.params;
         const result = await missionService.completeMission(parseInt(userId), parseInt(missionId));
         
-        res.status(StatusCodes.OK).json({
-            success: true,
-            message: '미션이 성공적으로 완료되었습니다.',
-            data: result
-        });
+        res.success(result, '미션이 성공적으로 완료되었습니다.');
     } catch (error) {
         next(error);
     }
@@ -202,11 +191,7 @@ export const assignMissionToUser = async (req, res, next) => {
 
         const result = await missionService.assignMissionToUser(userId, missionId);
         
-        res.status(StatusCodes.CREATED).json({
-            success: true,
-            message: '미션이 성공적으로 할당되었습니다.',
-            data: result
-        });
+        res.success(result, '미션이 성공적으로 할당되었습니다.', StatusCodes.CREATED);
     } catch (error) {
         next(error);
     }
@@ -235,10 +220,7 @@ export const getUserReviews = async (req, res, next) => {
     const userId = parseInt(req.params.userId);
     const reviews = await missionService.getUserReviews(userId);
     
-    res.status(StatusCodes.OK).json({
-      success: true,
-      data: reviews
-    });
+    res.success(reviews);
   } catch (error) {
     next(error);
   }
@@ -267,10 +249,7 @@ export const getStoreMissions = async (req, res, next) => {
         const storeId = parseInt(req.params.storeId);
         const missions = await missionService.getMissionsByStoreId(storeId);
         
-        res.status(StatusCodes.OK).json({
-            success: true,
-            data: missions
-        });
+        res.success(missions);
     } catch (error) {
         next(error);
     }
@@ -320,11 +299,7 @@ export const handleChallengeMission = async (req, res, next) => {
 
         const result = await missionService.challengeMission(missionId, userId);
         
-        res.status(StatusCodes.CREATED).json({
-            success: true,
-            message: '미션 도전이 시작되었습니다.',
-            data: result
-        });
+        res.success(result, '미션에 도전했습니다!', StatusCodes.CREATED);
     } catch (error) {
         next(error);
     }

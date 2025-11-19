@@ -1,43 +1,15 @@
 import bcrypt from 'bcrypt';
 import { createUserWithPreferences, getUser } from '../repositories/user.repository.js';
 
-// Error handling with standard Error and status codes
-class AppError extends Error {
-  constructor(message, statusCode) {
-    super(message);
-    this.statusCode = statusCode;
-    this.status = `${statusCode}`.startsWith('4') ? 'fail' : 'error';
-    this.isOperational = true;
-
-    Error.captureStackTrace(this, this.constructor);
-  }
-}
-
-// Custom error classes for specific error types
-class DuplicateUserEmailError extends AppError {
-  constructor(message = '이미 사용 중인 이메일입니다.') {
-    super(message, 409);
-  }
-}
-
-class ValidationError extends AppError {
-  constructor(message = '유효성 검사에 실패했습니다.', errors = []) {
-    super(message, 400);
-    this.errors = errors;
-  }
-}
-
-class InternalServerError extends AppError {
-  constructor(message = '서버 내부 오류가 발생했습니다.') {
-    super(message, 500);
-  }
-}
-
-class NotFoundError extends AppError {
-  constructor(message = '요청하신 리소스를 찾을 수 없습니다.') {
-    super(message, 404);
-  }
-}
+// Error classes from centralized error handling
+import { 
+  DuplicateUserEmailError,
+  ValidationError,
+  InternalServerError,
+  NotFoundError,
+  ConflictError,
+  BadRequestError
+} from '../errors.js';
 
 // 비밀번호 해시 함수
 const hashPassword = async (password) => {

@@ -1,6 +1,7 @@
 import * as storeService from '../services/store.service.js';
 import { listStoreReviews, getStoreById as getStoreByIdService } from '../services/store.service.js';
 import { StatusCodes } from 'http-status-codes';
+import { NotFoundError } from '../errors.js';
 
 /**
  * POST /api/v1/stores 엔드포인트 핸들러
@@ -16,8 +17,14 @@ export const handleAddStore = async (req, res) => {
         const result = await storeService.addNewStore({ name, address, region });
         return res.status(201).json(result); // 201 Created
     } catch (error) {
-        console.error(error);
-        return res.status(500).json({ message: '가게 추가 중 오류 발생' });
+        if (error instanceof NotFoundError) {
+            throw error;
+        }
+        console.error('가게 추가 중 오류 발생:', error);
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ 
+            message: '가게 추가 중 오류가 발생했습니다.',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
     }
 };
 
