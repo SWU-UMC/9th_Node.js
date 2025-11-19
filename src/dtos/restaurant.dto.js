@@ -1,11 +1,11 @@
-export const bodyToRestaurant = (body) => {
+export const bodyToRestaurant = (data) => {
   return {
-    name: body.name, // 필수
-    address: body.address, // 필수
-    detailAddress: body.detailAddress || null,
-    phone: body.phone || null, 
-    regionId: body.regionId, // 필수
-    categoryId: body.categoryId || null, 
+    name: data.name, // 필수
+    address: data.address, // 필수
+    detailAddress: data.detailAddress || null,
+    phoneNumber: data.phoneNumber || null, 
+    regionId: data.regionId, // 필수
+    categoryId: data.categoryId || null, 
   };
 };
 
@@ -16,11 +16,19 @@ export const responseFromRestaurant = (data) => {
     name: data.name,
     address: data.address,
     detailAddress: data.detail_address,
-    phone: data.phone,
-    regionId: data.region_id,
-    regionName: data.regionName, 
-    categoryId: data.food_category_id,
-    categoryName: data.categoryName, 
-    createdAt: data.created_at,
+    phoneNumber: data.phoneNumber,
+    regionId: data.regionId,
+    regionName: data.region.name, 
+    categoryId: data.foodCategoryId,
+    categoryName: data.foodCategory.name
+  };
+};
+
+export const responseFromReviews = (reviews) => {
+  return {
+    data: reviews,
+    pagination: {
+      cursor: reviews.length ? reviews[reviews.length - 1].id : null,
+    },
   };
 };

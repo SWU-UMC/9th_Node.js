@@ -13,18 +13,33 @@ export const bodyToUser = (body) => {
   };
 };
 
-export const responseFromUser = (data) => {
-    const {user, preferences} = data;
-    const u = user[0];
 
-    return {
-        email: u.email,
-        name: u.name,
-        gender: u.gender,
-        birth: u.birth,
-        address: u.address,
-        detailAddress: u.detailAddress, 
-        phoneNumber: u.phoneNumber,
-        preferences: preferences,
-    };
+export const responseFromUser = ({ user, preferences }) => {
+  const preferFoods = preferences.map(
+    (preference) => preference.foodCategory.name
+  );
+
+  return {
+    email: user.email,
+    name: user.name,
+    preferCategory: preferFoods,
+  };
+};
+
+export const responseFromReviews = (reviews) => {
+  return {
+    data: reviews,
+    pagination: {
+      cursor: reviews.length ? reviews[reviews.length - 1].id : null,
+    },
+  };
+};
+
+export const responseFromUserMissions = (missions) => {
+  return {
+    data: missions,
+    pagination: {
+      cursor: missions.length ? missions[missions.length - 1].id : null,
+    },
+  };
 };

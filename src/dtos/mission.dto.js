@@ -1,9 +1,9 @@
 export const bodyToMission = (body, params) => {
   return {
-    restaurantId: params.restaurantId, // 미션을 추가할 가게 ID (URL 파라미터)
+    restaurantId: parseInt(params.restaurantId), // 미션을 추가할 가게 ID 
     point: body.point, // 필수
     content: body.content, // 필수
-    deadline: body.deadline || null, // 선택
+    deadline: body.deadline ? new Date(body.deadline) : null,
   };
 };
 

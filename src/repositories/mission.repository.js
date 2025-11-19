@@ -1,97 +1,87 @@
-import { pool } from "../db.config.js";
+import { prisma } from "../db.config.js";
+
+import {
+  RestaurantNotFoundError,
+  MissionNotFoundError,
+  UserNotFoundError,
+  MissionAlreadyChallengedError,
+  InternalServerError,
+} from "../error.js";
 
 // 미션 데이터 삽입
 export const addMission = async (data) => {
-  const conn = await pool.getConnection();
   try {
-    const [result] = await pool.query(
-      `INSERT INTO mission (restaurant_id, point, content, deadline) VALUES (?, ?, ?, ?);`,
-      [data.restaurantId, data.point, data.content, data.deadline]
-    );
-    return result.insertId; 
+    const newMission = await prisma.mission.create({
+      data: {
+        point: data.point,
+        content: data.content,
+        deadline: data.deadline,
+
+        restaurant: {
+          connect: { id: data.restaurantId }, 
+        },
+      },
+    });
+    return newMission;
   } catch (err) {
-    throw new Error(
-      `오류가 발생했어요. 요청 파라미터를 확인해주세요. (${err})`
-    );
-  } finally {
-    conn.release();
+    if (err.code === 'P2003') {
+      throw new RestaurantNotFoundError(`[Validation Error] 존재하지 않는 가게 ID입니다.`);
+    }
+    console.error(err);
+    throw new InternalServerError(`DB 오류가 발생했습니다: ${err.message}`);
   }
 };
 
 // ID로 미션 정보 얻기
 export const getMissionById = async (missionId) => {
-  const conn = await pool.getConnection();
-  try {
-    const [mission] = await pool.query(
-        `SELECT * FROM mission WHERE id = ?;`, 
-        missionId
-    );
-    if (mission.length == 0) {
-        return null;
-    }
-    return mission[0];
-  } catch (err) {
-    throw new Error(
-      `오류가 발생했어요. 요청 파라미터를 확인해주세요. (${err})`
-    );
-  } finally {
-    conn.release();
-  }
+  const mission = await prisma.mission.findUnique({where: {id: missionId}});
+  return mission;
 };
 
 // 사용자가 특정 미션에 도전 중인지 확인 (검증용)
 export const checkUserMissionExists = async (userId, missionId) => {
-  const conn = await pool.getConnection();
-  try {
-    const [rows] = await pool.query(
-      `SELECT * FROM user_mission WHERE user_id = ? AND mission_id = ?;`,
-      [userId, missionId]
-    );
-    return rows.length > 0;
-  } catch (err) {
-    throw new Error(
-      `오류가 발생했어요. 요청 파라미터를 확인해주세요. (${err})`
-    );
-  } finally {
-    conn.release();
-  }
+  const existingMission = await prisma.user_mission.findUnique({
+    where: {
+      userId_missionId: {
+        userId: userId,
+        missionId: missionId,
+      },
+    },
+  });
+  
+  return !!existingMission;
 };
 
 // 사용자가 미션에 도전
 export const addUserMission = async (data) => {
-  const conn = await pool.getConnection();
   try {
-    const [result] = await pool.query(
-      `INSERT INTO user_mission (user_id, mission_id) VALUES (?, ?);`,
-      [data.userId, data.missionId]
-    );
-    return result.insertId;
+    const newUserMission = await prisma.userMission.create({
+      data: {
+        user: { connect: { id: data.userId } },
+        mission: { connect: { id: data.missionId } },
+      },
+    });
+    return newUserMission;
   } catch (err) {
-    throw new Error(
-      `오류가 발생했어요. 요청 파라미터를 확인해주세요. (${err})`
-    );
-  } finally {
-    conn.release();
+    if (err.code === 'P2002') { 
+      throw new MissionAlreadyChallengedError(`[Validation Error] 이미 도전 중인 미션입니다.`);
+    }
+    if (err.code === 'P2003') { 
+      if (err.meta?.field_name.includes("user")) {
+        throw new UserNotFoundError(`[Validation Error] 존재하지 않는 사용자 ID입니다.`);
+      }
+      if (err.meta?.field_name.includes("mission")) {
+        throw new MissionNotFoundError(`[Validation Error] 존재하지 않는 미션 ID입니다.`);
+      }
+    }
+    console.error(err);
+    throw new InternalServerError(`DB 오류가 발생했습니다: ${err.message}`);
   }
 };
-
 // ID로 user_mission 정보 조회 (방금 추가한 '도전' 확인용)
 export const getUserMissionById = async (userMissionId) => {
-  const conn = await pool.getConnection();
-  try {
-    const [rows] = await pool.query(
-      `SELECT * FROM user_mission WHERE id = ?;`,
-      userMissionId
-    );
-    if (rows.length == 0) {
-      return null;
-    }
-    return rows[0];
-  } catch (err) {
-    throw new Error(
-      `오류가 발생했어요. 요청 파라미터를 확인해주세요. (${err})`
-    );
-  } finally {
-    conn.release();
-  }
+  const userMission = await prisma.user_mission.findUnique({
+    where: { id: userMissionId },
+  });
+  return userMission;
 };
