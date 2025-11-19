@@ -1,6 +1,29 @@
 import { prisma } from "../db.config.js";
 
-// User 데이터 삽입
+// User 데이터 삽입 + 선호도 설정을 트랜잭션으로 처리
+export const createUserWithPreferences = async (userData, foodCategoryIds = []) => {
+  return await prisma.$transaction(async (tx) => {
+    // 사용자 생성
+    const { phoneNumber, ...userDataWithoutPhone } = userData;
+    const createData = phoneNumber ? userData : userDataWithoutPhone;
+    
+    const user = await tx.user.create({ data: createData });
+
+    // 선호 카테고리 추가
+    if (foodCategoryIds && foodCategoryIds.length > 0) {
+      await tx.userFavorCategory.createMany({
+        data: foodCategoryIds.map(categoryId => ({
+          userId: user.id,
+          foodCategoryId: categoryId
+        }))
+      });
+    }
+
+    return user;
+  });
+};
+
+// User 데이터 삽입 (기존 함수 유지 - 호환성을 위해)
 export const addUser = async (data) => {
   const user = await prisma.user.findFirst({ where: { email: data.email } });
   if (user) {

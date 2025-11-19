@@ -61,6 +61,24 @@ export const getStoreById = async (req, res, next) => {
  * POST /api/v1/stores/:storeId/reviews
  * 가게 리뷰 생성
  */
+/**
+ * GET /api/v1/stores/:storeId/missions
+ * 가게의 미션 목록 조회
+ */
+export const getStoreMissions = async (req, res, next) => {
+    try {
+        const storeId = parseInt(req.params.storeId);
+        const missions = await storeService.getStoreMissions(storeId);
+        
+        res.status(StatusCodes.OK).json({
+            success: true,
+            data: missions
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 export const handleCreateStoreReview = async (req, res, next) => {
   try {
     const { content, rating, userId } = req.body;
@@ -104,3 +122,6 @@ export const handleCreateStoreReview = async (req, res, next) => {
     });
   }
 };
+
+// handleAddReview는 handleCreateStoreReview의 별칭으로 사용
+export const handleAddReview = handleCreateStoreReview;
