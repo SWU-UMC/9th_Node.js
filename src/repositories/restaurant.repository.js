@@ -4,6 +4,7 @@ import {
   InternalServerError,
 } from "../error.js";
 
+// 가게 데이터 삽입
 export const addRestaurant = async (data) => {
   try {
     const newRestaurant = await prisma.restaurant.create({
@@ -31,6 +32,7 @@ export const addRestaurant = async (data) => {
   }
 };
 
+// ID로 가게 정보 얻기
 export const getRestaurantById = async (restaurantId) => {
   const restaurant = await prisma.restaurant.findUnique({
     where: { id: restaurantId },
@@ -43,6 +45,7 @@ export const getRestaurantById = async (restaurantId) => {
   return restaurant;
 };
 
+// 특정 가게의 리뷰 목록 조회
 export const getAllRestaurantReviews = async (restaurantId, cursor) => {
   const reviews = await prisma.review.findMany({
     select: {

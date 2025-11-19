@@ -36,3 +36,9 @@ export const responseFromUserMission = (data) => {
     createdAt: data.created_at,
   };
 };
+
+export const paramsToCompleteMission = (params) => {
+  return {
+    userMissionId: parseInt(params.userMissionId),
+  };
+};

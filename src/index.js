@@ -3,6 +3,9 @@ import dotenv from "dotenv";
 import express from "express";
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
+import swaggerAutogen from "swagger-autogen";
+import swaggerUiExpress from "swagger-ui-express";
+
 
 import { 
   handleUserSignUp,
@@ -16,7 +19,8 @@ import {
 import { handleAddReview } from "./controllers/review.controller.js";
 import {
   handleAddMission,
-  handleChallengeMission 
+  handleChallengeMission,
+  handleCompleteMission,
 } from "./controllers/mission.controller.js";
 
 dotenv.config();
@@ -51,6 +55,39 @@ app.use(express.json()); // request의 본문을 json으로 해석할 수 있도
 app.use(express.urlencoded({ extended: false })); // 단순 객체 문자열 형태로 본문 데이터 해석
 app.use(cookieParser());
 
+app.use(
+  "/docs",
+  swaggerUiExpress.serve,
+  swaggerUiExpress.setup({}, {
+    swaggerOptions: {
+      url: "/openapi.json",
+    },
+  })
+);
+
+app.get("/openapi.json", async (req, res, next) => {
+  // #swagger.ignore = true
+  const options = {
+    openapi: "3.0.0",
+    disableLogs: true,
+    writeOutputFile: false,
+  };
+  const outputFile = "/dev/null"; // 파일 출력은 사용하지 않습니다.
+  const routes = ["./src/index.js"];
+  const doc = {
+    info: {
+      title: "UMC 9th",
+      description: "UMC 9th Node.js 테스트 프로젝트입니다.",
+    },
+    host: "localhost:3000",
+  };
+
+  const result = await swaggerAutogen(options)(outputFile, routes, doc);
+  res.json(result ? result.data : null);
+});
+
+// ...
+
 app.get("/", (req, res) => {
   res.send("Hello World!");
 });
@@ -63,6 +100,7 @@ app.post("/api/v1/missions/:missionId/challenge", handleChallengeMission);
 app.get("/api/v1/restaurants/:restaurantId/reviews", handleListRestaurantReviews);
 app.get("/api/v1/users/:userId/reviews", handleListUserReviews);
 app.get("/api/v1/users/:userId/missions", handleListUserMissions)
+app.patch("/api/v1/missions/:userMissionId/complete", handleCompleteMission);
 
 /**
  * 전역 오류를 처리하기 위한 미들웨어
