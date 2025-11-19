@@ -31,29 +31,3 @@ export const getMissionById = async (mission_id) => {
         throw err;
     }
 }
-
-//mission-06
-//레스토랑 ID로 미션 조회하기
-export const getMissionsByRestaurantId = async (req, res) => {
-  try {
-    const missions = await prisma.mission.findMany({
-      where: { restaurant_id: Number(restaurant_id) },
-      select: {
-        mission_id: true,
-        title: true,
-        description: true,
-        reward: true,
-      },
-      orderBy: { mission_id: "asc" },
-      take: limit,
-      ...(cursor && { cursor: { mission_id: Number(cursor) }, skip: 1 }),
-    });
-
-    const nextCursor = missions.length > 0 ? missions[missions.length - 1].mission_id : null;
-
-    return { missions, nextCursor };
-  } catch (err) {
-    console.error("레스토랑 ID로 미션 조회 중 에러:", err);
-    throw err;
-  }
-};

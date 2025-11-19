@@ -5,14 +5,15 @@ import {
   getOngoingMissions
 } from "../repositories/user_mission.repository.js";
 
-import { getMissionById } from "../repositories/mission.repository.js";
+import { getMissionById, } from "../repositories/mission.repository.js";
 import { responseFromUserMission } from "../dtos/user_mission.dto.js";
+import { DuplicateUserEmailError } from "../errors.js";
 
 export const startMission = async (user_id, mission_id) => {
     //미션이 존재하는지 확인
     const mission = await getMissionById(mission_id);
     if(!mission) {
-        throw new Error ("해당 미션이 존재하지 않습니다.")
+        throw new DuplicateUserEmailError ("해당 미션이 존재하지 않습니다.")
     }
 
     const existingChallenge = await findUserByMission(
@@ -20,7 +21,7 @@ export const startMission = async (user_id, mission_id) => {
         mission_id
     );
     if (existingChallenge) {
-        throw new Error ("이미 도전 중이거나 완료한 미션입니다.");
+        throw new DuplicateUserEmailError ("이미 도전 중이거나 완료한 미션입니다.");
     }
 
     const challengeDate = {
@@ -35,13 +36,15 @@ export const startMission = async (user_id, mission_id) => {
     return responseFromUserMission(newUserMission);
 };
 
+//진행 중인 미션 조회
 export const getOngoingMissionsService = async (user_id, cursor = 0, limit = 5) => {
-  const missions = await getOngoingMissions(user_id, cursor, limit);
-
-  const nextCursor = missions.length > 0 ? missions[missions.length - 1].mission_id : null;
+  const result = await getOngoingMissions(user_id, cursor, limit);
+  const missionsDto = result.missions.map(userMission => {
+      return responseFromMission(userMission.mission);
+  });
 
   return {
-    missions: responseFromMission(missions),
-    nextCursor,
-  };
+    missions: missionsDto,
+    nextCursor: result.nextCursor,
+  };
 };

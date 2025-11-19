@@ -85,8 +85,8 @@ model User_mission {
   user_mission_id Int        @id @default(autoincrement())  
   user_id         Int
   mission_id      Int
-  completed_id    Int // 사장님 구분 번호 
-  status          Boolean    @default(false)
+  completed_id    Int? // 사장님 구분 번호 
+  status          Int    @default(0)
   start_date      DateTime?
   end_date        DateTime?
 

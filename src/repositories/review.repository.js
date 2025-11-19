@@ -1,21 +1,21 @@
 import { prisma } from "../db.config.js";
 
 //특정 유저가 특정 미션을 완료했는지 확인
-export const findCompletedMission  = async (user_id, mission_id) => {
-    try {
-        const completedMission = await prisma.user_mission.findFirst({
-            where: {
-                user_id,
-                mission_id,
-                status: 1,
-            },
-        });
-        return completedMission || null;
-    } catch (err) {
-        console.error("특정 유저가 미션을 완료했는지 확인하던 중 오류: ", err);
-        throw err;
+export const findCompletedMission = async (user_id, mission_id) => {
+  return await prisma.user_mission.findFirst({
+    where: {
+      user_id,
+      mission_id,
+      status: 1,
+    },
+    include: {
+      mission: {  
+        select: { restaurant_id: true }
+      }
     }
-}
+  });
+};
+
 
 //해당 미션에 대해 이미 리뷰를 작성했는지 유효성 확인
 export const findReviewByMission = async (user_id, mission_id) => {
@@ -95,9 +95,6 @@ export const getMyReviews = async (user_id, cursor = null, limit = 5) => {
         ...(cursor && { cursor: { review_id: Number(cursor)}, skip: 1}),
     });
     const nextCursor = reviews.length > 0 ? reviews[reviews.length - 1].review_id : null;
-
-    // restaurant_name은 어차피 모든 리뷰가 같은 값이므로 첫 번째에서 뽑기
-    const restaurantName = reviews[0]?.restaurant?.restaurant_name || null;
 
     return { restaurantName, reviews, nextCursor };
   } catch (err) {

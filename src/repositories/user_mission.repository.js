@@ -10,67 +10,74 @@ export const findUserByMission = async (user_id, mission_id) => {
       },
     });
     return user_mission;
-  } catch (err) {
-    console.error("도전 확인 중 에러:", err);
-    throw err;
+  } catch (error) {
+    console.error("도전 확인 중 에러:", error);
+    throw error;
   }
 };
 
-//도전 중인 미션 생성 (status = 0)
+//도전 중인 미션 생성 (status = 1)
 export const createUserMission = async (data) => {
   try {
     const user_mission = await prisma.user_mission.create({
       data: {
         mission_id: data.mission_id,
         user_id: data.user_id,
-        restaurant_id: data.restaurant_id,
-        status: 0,
+        completed_id: data.completed_id,
+        status: 1,
         start_date: new Date(), // NOW() 대체
       },
     });
-    return user_mission.completed_id; // PK 반환
-  } catch (err) {
-    console.error("도전 미션 생성 중 에러: ", err);
-    throw err;
+    return user_mission.user_mission_id; // PK 반환
+  } catch (error) {
+    console.error("도전 미션 생성 중 에러: ", error);
+    throw error;
   }
 };
 
-//completed_id로 유저 미션 조회
-export const getUserMissionById = async (completedId) => {
+//user_mission_id 유저 미션 조회
+export const getUserMissionById = async (user_mission_id) => {
   try {
     const user_mission = await prisma.user_mission.findUnique({
-      where: { completed_id: completedId },
+      where: { user_mission_id: user_mission_id },
     });
     return user_mission;
-  } catch (err) {
-    console.error("유저 미션 조회 중 에러:", err);
-    throw err;
+  } catch (error) {
+    console.error("유저 미션 조회 중 에러:", error);
+    throw error;
   }
 };
 
 
 // user_id 기준 진행중 미션 목록 조회 (커서 기반)
 export const getOngoingMissions = async (user_id, cursor = 0, limit = 5) => {
-  const missions = await prisma.user_mission.findMany({
+  const userMissions = await prisma.user_mission.findMany({
     where: {
       user_id: Number(user_id),
       status: 0, // 진행중
     },
     select: {
-      mission_id: true,
-      title: true,
-      description: true,
-      reward: true,
-      restaurant: {
+      user_mission_id: true,
+
+      mission: {
+        select: {
+          mission_id: true,
+          title: true,
+          description: true,
+          reward: true,
+          restaurant: {
         select: {
           restaurant_name: true,
         },
       },
+        },
+      },
     },
-    orderBy: { mission_id: "asc" },
+    orderBy: { user_mission_id: "asc" },
     take: limit,
-    ...(cursor ? { cursor: { mission_id: Number(cursor) }, skip: 1 } : {}),
+    ...(cursor ? { cursor: { user_mission_id: Number(cursor) }, skip: 1 } : {}),
   });
 
-  return missions;
+  const nextCursor = userMissions.length > 0 ? userMissions[userMissions.length - 1].user_mission_id: null;
+  return { missions: userMissions, nextCursor };
 };
