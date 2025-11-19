@@ -12,10 +12,10 @@ import {
 
 const router = express.Router();
 
-/**
- * [POST] 회원가입 요청
- * URL: /api/users/signup
- */
+
+ // [POST] 회원가입 요청
+ // URL: /api/users/signup
+
 /*
   #swagger.tags = ['User']
   #swagger.summary = '회원가입'
@@ -104,9 +104,9 @@ router.post("/users/signup", async (req, res, next) => {
   }
 });
 
-/**
- * [GET] 특정 사용자 정보 조회
- */
+
+ //[GET] 특정 사용자 정보 조회
+ 
 /*
   #swagger.tags = ['User']
   #swagger.summary = '사용자 정보 조회'
@@ -177,9 +177,8 @@ router.get("/users/:userId", async (req, res, next) => {
   }
 });
 
-/**
- * [POST] 사용자 선호 음식 카테고리 등록
- */
+ // [POST] 사용자 선호 음식 카테고리 등록
+
 /*
   #swagger.tags = ['User']
   #swagger.summary = '사용자 선호 카테고리 등록'
@@ -255,9 +254,9 @@ router.post("/users/:userId/preferences", async (req, res, next) => {
   }
 });
 
-/**
- * [GET] 사용자 선호 음식 카테고리 목록 조회
- */
+
+ // [GET] 사용자 선호 음식 카테고리 목록 조회
+
 /*
   #swagger.tags = ['User']
   #swagger.summary = '사용자 선호 카테고리 조회'

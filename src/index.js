@@ -5,8 +5,8 @@ import morgan from "morgan";          // 추가함.  -> m install morgan cookie-
 import cookieParser from "cookie-parser";  // 추가
 
 // Swagger
-import swaggerAutogen from "swagger-autogen";
-import swaggerUiExpress from "swagger-ui-express";
+import swaggerUi from "swagger-ui-express";
+import swaggerSpec from "../swagger.js"; // ← src 바깥의 swagger.js 불러오기
 
 // .env 로드
 dotenv.config();
@@ -17,6 +17,7 @@ app.use(morgan("dev"));         // 요청 로그 콘솔 출력
 app.use(cookieParser());        // 쿠키 파싱
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 /*공용 응답 헬퍼 등록 -> 워크북 참고함. */
 app.use((req, res, next) => {
@@ -39,43 +40,7 @@ app.use((req, res, next) => {
     next();
   });
 
-  app.use(
-    "/docs",
-    swaggerUiExpress.serve,
-    swaggerUiExpress.setup({}, {
-      swaggerOptions: {
-        url: "/openapi.json",
-      },
-    })
-  );
   
-  app.get("/openapi.json", async (req, res, next) => {
-    // #swagger.ignore = true
-    const options = {
-      openapi: "3.0.0",
-      disableLogs: true,
-      writeOutputFile: false,
-    };
-    const outputFile = "/dev/null"; // 파일 출력은 사용하지 않습니다.
-    const routes = [
-      "./src/index.js",
-      "./src/controllers/region.controller.js",
-      "./src/controllers/review.controller.js",
-      "./src/controllers/mission.controller.js",
-      "./src/controllers/user_mission.controller.js",
-      "./src/controllers/user.controller.js"
-    ];
-    const doc = {
-      info: {
-        title: "UMC 9th",
-        description: "UMC 9th Node.js 테스트 프로젝트입니다.",
-      },
-      host: "localhost:3000",
-    };
-  
-    const result = await swaggerAutogen(options)(outputFile, routes, doc);
-    res.json(result ? result.data : null);
-  });
 
 // 라우터 import
 import regionRouter from "./controllers/region.controller.js";
