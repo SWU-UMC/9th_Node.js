@@ -8,7 +8,7 @@ export const addMission = async ({
 }) => {
   const mission = await prisma.mission.create({
     data: {
-      store: { connect: { id: Number(storeId) } },
+      store: { connect: { id: BigInt(storeId) } },
       reward: Number(reward),
       deadline: deadline ? new Date(deadline) : null,
       missionSpec,
@@ -19,7 +19,7 @@ export const addMission = async ({
 
 export const getMissionById = async (missionId) => {
   return prisma.mission.findUnique({
-    where: { id: Number(missionId) },
+    where: { id: BigInt(missionId) },
   });
 };
 
@@ -30,10 +30,12 @@ export const findMissionsByStore = async ({
   take = 5,
 }) => {
   return prisma.mission.findMany({
-    where: { storeId: BigInt(storeId) },
+    where: {
+      storeId: BigInt(storeId),
+      ...(cursor > 0 ? { id: { gt: BigInt(cursor) } } : {}),
+    },
     orderBy: { id: "asc" },
     take,
-    skip: cursor,
   });
 };
 

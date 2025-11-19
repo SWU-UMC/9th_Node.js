@@ -12,7 +12,7 @@ export const handleUserSignUp = async (req, res, next) => {
     console.log("DTO preferences:", dto.preferences);
 
     const user = await userSignUp(dto);
-    res.status(StatusCodes.OK).json({ result: user });
+    res.status(StatusCodes.OK).success(user);
   } catch (err) {
     next(err);
   }

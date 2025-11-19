@@ -1,8 +1,38 @@
-export const bodyToReview = (body) => ({
-  score: body.score !== undefined ? Number(body.score) : null,
-  body: body.body || "",
-  storeId: body.storeId !== undefined ? Number(body.storeId) : null,
-});
+export const bodyToReview = (body) => {
+  const score =
+    body.score !== undefined && body.score !== null ? Number(body.score) : null;
+  const storeId =
+    body.storeId !== undefined && body.storeId !== null
+      ? Number(body.storeId)
+      : null;
+  const content = (body.body ?? "").toString().trim();
+
+  if (!Number.isFinite(storeId) || storeId <= 0) {
+    throw new ValidationError("storeId는 양의 정수여야 합니다.", {
+      storeId: body.storeId,
+    });
+  }
+  if (!Number.isFinite(score)) {
+    throw new ValidationError("score는 숫자여야 합니다.", {
+      score: body.score,
+    });
+  }
+  if (score < 1 || score > 5) {
+    throw new ValidationError("score는 1~5 사이의 숫자여야 합니다.", { score });
+  }
+  if (!content) {
+    throw new ValidationError("리뷰 본문(body)은 필수입니다.", {
+      body: body.body,
+    });
+  }
+  if (content.length > 1000) {
+    throw new ValidationError("리뷰 본문은 최대 1000자까지 가능합니다.", {
+      length: content.length,
+    });
+  }
+
+  return { score, body: content, storeId };
+};
 
 export const responseFromReview = (r) => ({
   id: r.id,

@@ -5,8 +5,8 @@ export const addReview = async ({ score, body, userId, storeId }) => {
     data: {
       score: Number(score),
       body,
-      user: { connect: { id: Number(userId) } },
-      store: { connect: { id: Number(storeId) } },
+      user: { connect: { id: BigInt(userId) } },
+      store: { connect: { id: BigInt(storeId) } },
     },
   });
   return review;
@@ -26,7 +26,7 @@ export const findReviewsByUser = async ({ userId, cursor = 0, take = 5 }) => {
     },
     where: {
       userId: BigInt(userId),
-      id: { gt: BigInt(cursor) },
+      ...(cursor > 0 ? { id: { gt: BigInt(cursor) } } : {}),
     },
     orderBy: { id: "asc" },
     take,
