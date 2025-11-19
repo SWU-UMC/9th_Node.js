@@ -21,19 +21,20 @@ export const addReview = async (reviewData) => {
   // 가게 존재 확인
   const store = await getStoreById(storeId);
   if (!store) {
-    // 커스텀 에러 처리 구현
+    throw new StoreNotFoundError("존재하지 않는 가게입니다.", { storeId });
   }
 
   // 유저 미션 존재 확인
   const userMission = await getUserMissionById(userMissionId);
   if (!userMission) {
-    // 커스텀 에러 처리 구현
+    throw new MissionNotFoundError("미션 정보를 찾을 수 없습니다.", { userMissionId });
   }
 
   // 중복 리뷰 방지
   const existing = await findRiviewByUserMissionId(userMissionId);
   if (existing) {
-    // 커스텀 에러 처리 구현
+    throw new MissionAlreadyCompletedError(
+      "이미 리뷰를 작성한 미션입니다.", { userMissionId });
   }
 
   // 리뷰 등록(생성)
