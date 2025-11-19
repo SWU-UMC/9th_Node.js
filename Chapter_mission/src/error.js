@@ -93,15 +93,3 @@ export class DuplicateStoreError extends Error {
         this.data = data;
     }
 }
-
-// 리뷰 중복
-export class MissionAlreadyCompletedError extends Error {
-    errorCode = "U009";
-    statusCode = 409;
-    
-    constructor(reason, data) {
-        super(reason);
-        this.reason = reason;
-        this.data = data;
-    }
-}

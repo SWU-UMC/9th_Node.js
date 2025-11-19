@@ -24,7 +24,7 @@ export const handleAddReview = async (req, res, next) => {
 // 특정 가게의 리뷰 목록 조회
 export const handleListStoreReviews = async (req, res, next) => {
   try {
-    const storeId = parseInt(req.params.storeId);
+    const storeId = parseInt(req.params.store_id);
     const cursor = req.query.cursor ? parseInt(req.query.cursor) : 0;
 
     const result = await listStoreReviews(storeId, cursor);
@@ -37,7 +37,7 @@ export const handleListStoreReviews = async (req, res, next) => {
 
 // 내가 작성한 리뷰 목록 조회
 export const handleListUserReviews = async (req, res, next) => {
-  const userId = parseInt(req.params.userId);
+  const userId = parseInt(req.params.user_id);
   const cursor =
     typeof req.query.cursor === "string" ? parseInt(req.query.cursor) : null;
 

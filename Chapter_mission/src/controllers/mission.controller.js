@@ -23,7 +23,7 @@ export const handleAddMission = async (req, res, next) => {
 // 특정 가게의 미션 목록 조회
 export const handleListMissionsByStore = async (req, res, next) => {
   try {
-    const storeId = parseInt(req.params.storeId);
+    const storeId = parseInt(req.params.store_id);
 
     const missions = await listMissionsByStore(storeId);
 

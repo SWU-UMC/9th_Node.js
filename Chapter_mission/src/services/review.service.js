@@ -2,7 +2,7 @@
 import {
   getStoreById,
   getUserMissionById,
-  findRiviewByUserMissionId,
+  findReviewByUserMissionId,
   createReview,
   getAllStoreReviews,
   getUserReviews,
@@ -31,7 +31,7 @@ export const addReview = async (reviewData) => {
   }
 
   // 중복 리뷰 방지
-  const existing = await findRiviewByUserMissionId(userMissionId);
+  const existing = await findReviewByUserMissionId(userMissionId);
   if (existing) {
     throw new MissionAlreadyCompletedError(
       "이미 리뷰를 작성한 미션입니다.", { userMissionId });

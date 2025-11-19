@@ -1,6 +1,8 @@
 import dotenv from "dotenv";
 import express from "express";
 import cors from "cors";
+import swaggerAutogen from "swagger-autogen";
+import swaggerUiExpress from "swagger-ui-express";
 
 import { handleUserSignUp } from "./src/controllers/user.controller.js";
 import { handleAddStore } from "./src/controllers/store.controller.js";
@@ -9,7 +11,11 @@ import { handleAddReview,
         handleListStoreReviews, } from "./src/controllers/review.controller.js";
 import { handleAddMission,
         handleListMissionsByStore, } from "./src/controllers/mission.controller.js";
-import { handleChallengeMission } from "./src/controllers/userMission.controller.js";
+import {
+  handleChallengeMission,
+  handleListActiveMissions,
+  handleCompleteMission,
+} from "./src/controllers/userMission.controller.js";
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
 
@@ -25,14 +31,15 @@ app.use((req, res, next) => {
   res.success = (success) => {
     return res.json({ resultType: "SUCCESS", error: null, success });
   };
-
-  res.errored = ({ errorCode = "unknown", reason = null, data = null }) => {
-    return res.json({
-      resultType: "FAIL",
-      error: { errorCode, reason, data },
-      success: null,
-    });
-  };
+  
+  // 오류로 잠시 주석 처리 했습니다...
+  // res.errored = ({ errorCode = "unknown", reason = null, data = null }) => {
+  //   return res.json({
+  //     resultType: "FAIL",
+  //     error: { errorCode, reason, data },
+  //     success: null,
+  //   });
+  // };
 
   next();
 });
@@ -49,6 +56,107 @@ app.use(cookieParser());
 
 app.get("/", (req, res) => {
   res.send("Hello World!");
+});
+
+/**
+ * Swagger 설정
+ */
+app.use(
+  "/docs",
+  swaggerUiExpress.serve,
+  swaggerUiExpress.setup({}, {
+    swaggerOptions: {
+      url: "/openapi.json",
+    },
+  })
+);
+
+app.get("/openapi.json", async (req, res, next) => {
+  // #swagger.ignore = true
+  try {
+    const options = {
+      openapi: "3.0.0",
+      disableLogs: true,
+      writeOutputFile: false,
+    };
+    const outputFile = "/dev/null"; // 파일 출력 사용 안 함
+    const routes = ["./index.js"];  // 이 파일 기준 경로
+    const doc = {
+      info: {
+        title: "UMC 9th",
+        description: "UMC 9th Node.js 테스트 프로젝트입니다.",
+      },
+      host: `localhost:${port}`,
+      schemes: ["http"],
+      components: {
+        schemas: {
+          ErrorInfo: {
+            type: "object",
+            properties: {
+              errorCode: {
+                type: "string",
+                example: "U001"
+              },
+              reason: {
+                type: "string",
+                example: "이미 사용 중인 이메일입니다."
+              },
+              data: {
+                type: "object",
+                nullable: true,
+                example: { email: "test@example.com" },
+              },
+            },
+            required: ["errorCode"],
+          },
+          ErrorResponse: {
+            type: "object",
+            properties: {
+              resultType: {
+                type: "string",
+                enum: ["FAIL"],
+                example: "FAIL",
+              },
+              error: {
+                $ref: "#/components/schemas/ErrorInfo",
+              },
+              success: {
+                nullable: true,
+                example: null,
+              },
+            },
+            required: ["resultType", "error"],
+          },
+          // 성공 응답 기본 형태
+          SuccessResponse: {
+            type: "object",
+            properties: {
+              resultType: {
+                type: "string",
+                enum: ["SUCCESS"],
+                example: "SUCCESS",
+              },
+              error: {
+                nullable: true,
+                example: null,
+              },
+              success: {
+                type: "object",
+                description:
+                "각 API에서 예시 override"
+              },
+            },
+            required: ["resultType", "success"],
+          }
+        }
+      }
+    };
+
+    const result = await swaggerAutogen(options)(outputFile, routes, doc);
+    res.json(result ? result.data : null);
+  } catch (err) {
+    next(err);
+  }
 });
 
 /**
@@ -71,7 +179,7 @@ app.get("/api/v1/stores/:store_id/reviews", handleListStoreReviews);
 app.post("/api/v1/stores/:store_id/missions", handleAddMission);
 app.post("/api/v1/missions/:mission_id/challenges", handleChallengeMission);
 app.patch(
-  "/api/v1/user-missions/:userMissionId/complete",
+  "/api/v1/user-missions/:user_mission_id/complete",
   handleCompleteMission
 );
 
@@ -83,10 +191,16 @@ app.use((err, req, res, next) => {
     return next(err);
   }
 
-  res.status(err.statusCode || 500).error({
-    errorCode: err.errorCode || "unknown",
-    reason: err.reason || err.message || null,
-    data: err.data || null,
+  const status = err.statusCode || 500;
+
+  return res.status(status).json({
+    resultType: "FAIL",
+    error: {
+      errorCode: err.errorCode || "unknown",
+      reason: err.reason || err.message || null,
+      data: err.data || null,
+    },
+    success: null,
   });
 });
 

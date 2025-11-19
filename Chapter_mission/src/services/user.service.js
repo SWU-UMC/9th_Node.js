@@ -3,7 +3,6 @@
 import { prisma } from "../db.config.js";
 import { DuplicateUserEmailError } from "../error.js";
 import { responseFromUser } from "../dtos/user.dto.js";
-import { DuplicateUserEmailError } from "../error.js";
 
 /**
  * 회원가입 서비스 (Prisma 리팩터링 버전)

@@ -8,8 +8,8 @@ import { completeUserMission } from "../services/userMission.service.js";
 export const handleChallengeMission = async (req, res, next) => {
   console.log("미션 도전 요청:", req.params.missionId, req.body);
 
-  const missionId = Number(req.params.missionId);
-  const userId = Number(req.body.userId);
+  const missionId = Number(req.params.mission_id);
+  const userId = Number(req.body.user_id);
 
   try {
     const challenge = await challengeMission(userId, missionId);
@@ -34,7 +34,7 @@ export const handleListActiveMissions = async (req, res, next) => {
 
 // 미션 완료
 export const handleCompleteMission = async (req, res, next) => {
-  const userMissionId = parseInt(req.params.userMissionId);
+  const userMissionId = parseInt(req.params.user_mission_id);
 
   console.log("미션 완료 요청:", userMissionId);
 
