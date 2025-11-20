@@ -5,15 +5,14 @@ import { responseFromReview } from "../dtos/review.dto.js";
 import { DuplicateUserEmailError } from "../errors.js";
 
 export const restaurantAdd = async (body) => {
-  const restaurantData = bodyToRestaurant(body); // 여기서 변환
+  const restaurantData = bodyToRestaurant(body);
   if (!restaurantData.restaurant_name) {
     throw new DuplicateUserEmailError("restaurant_name은 필수입니다.", body);
   }
-
   const newRestaurant = await addRestaurant(restaurantData);
-
-  return responseFromRestaurant(restaurant);
+  return responseFromRestaurant(newRestaurant);
 };
+
 
 //특정 레스토랑의 리뷰 조회
 export const listRestaurantReviews = async (restaurant_id, cursor) => {

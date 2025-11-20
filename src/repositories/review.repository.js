@@ -90,13 +90,13 @@ export const getMyReviews = async (user_id, cursor = null, limit = 5) => {
                 },
             },
         },
-        orderBy: {review_id: "asc"},
+        orderBy: {review_id: "desc"},
         take: limit,
         ...(cursor && { cursor: { review_id: Number(cursor)}, skip: 1}),
     });
     const nextCursor = reviews.length > 0 ? reviews[reviews.length - 1].review_id : null;
 
-    return { restaurantName, reviews, nextCursor };
+    return { reviews, nextCursor };
   } catch (err) {
     console.error("getRestaurantReviews Error:", err);
     throw err;
