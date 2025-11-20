@@ -66,7 +66,7 @@ export const startMissionController = async (req, res, next) => {
 
     const userMission = await startMission(user_id, missionIdAsNumber);
 
-    res.status(StatusCodes.OK).success(userMission);
+    res.status(StatusCodes.CREATED(201)).success(userMission);
   } catch (error) {
     next(error); // 에러 핸들러로 넘김
   }
@@ -166,7 +166,7 @@ export const handleOngoingMissions = async (req, res, next) => {
       Number(limit) || 5
     );
 
-    res.status(StatusCodes.OK).success(result);
+    res.status(StatusCodes.CREATED(201)).success(result);
   } catch (error) {
     next(error);
   }

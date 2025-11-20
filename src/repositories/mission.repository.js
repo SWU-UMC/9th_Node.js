@@ -13,7 +13,6 @@ export const addMission = async (data) => {
         return mission.mission_id
   } catch (err) {
     console.error("미션 추가 중 에러:", err);
-    throw err;
   }
 };
 
@@ -28,6 +27,5 @@ export const getMissionById = async (mission_id) => {
         return mission || null;
     } catch (err) {
         console.error("ID로 특정 미션 조회 중 에러: ", err);
-        throw err;
     }
 }

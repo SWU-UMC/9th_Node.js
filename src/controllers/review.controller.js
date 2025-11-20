@@ -70,7 +70,7 @@ export const addReviewController = async (req, res, next) => {
       req.body // content, rating, photo 등이 담긴 객체
     );
 
-        res.status(StatusCodes.OK).success(review);
+        res.status(StatusCodes.CREATED(201)).success(review);
   } catch (error) {
     next(error);
     }
@@ -153,9 +153,7 @@ export const handleUserReviewList = async (req, res, next) => {
         const limitValue = req.query.limit ? parseInt(req.query.limit, 10) : 5;
 
     if (isNaN(userId)) {
-        return res.status(StatusCodes.BAD_REQUEST).error({
-            reason: "유효하지 않은 사용자 ID 형식입니다."
-        });
+    throw new Error('유효하지 않은 사용자 ID 형식입니다.');
     }
 
     const { reviews, nextCursor } = await listMyReviews( // 👈 서비스 함수 사용
@@ -164,8 +162,7 @@ export const handleUserReviewList = async (req, res, next) => {
             limitValue
         );    
         
-        // 3. 공통 성공 응답 헬퍼 사용
-        return res.success({ 
+        res.status(StatusCodes.OK).success({ 
             data: reviews.map(r => ({
                 review_id: r.review_id,
                 restaurant_name: r.restaurant.restaurant_name, 
@@ -176,7 +173,6 @@ export const handleUserReviewList = async (req, res, next) => {
             nextCursor,
         });
     } catch (error) {
-        // 모든 에러는 전역 핸들러로 위임
         next(error);
     }
 };

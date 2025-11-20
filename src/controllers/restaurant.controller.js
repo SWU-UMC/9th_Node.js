@@ -75,7 +75,7 @@ export const regionForRestaurant = async (req, res, next) => {
   try {
     console.log("body:", req.body);
     const restaurant = await restaurantAdd(req.body); 
-    res.status(StatusCodes.OK).success(restaurant);
+    res.status(StatusCodes.CREATED(201)).success(restaurant);
   } catch (error) {
     next(error);
     }
@@ -123,7 +123,7 @@ export const handleListRestaurantReviews = async (req, res, next) => {
     parseInt(req.params.restaurant_id),
     typeof req.query.cursor === "string" ? parseInt(req.query.cursor) : 0
   );
-  res.status(StatusCodes.OK).success(reviews);
+  res.status(StatusCodes.CREATED(201)).success(reviews);
 } catch (error) {
   next(error);
 }
@@ -209,7 +209,7 @@ export const getMissionsByRestaurantController = async (req, res, next) => {
       Number(limit) || 5
     );
 
-    res.status(StatusCodes.OK).success(result);
+    res.status(StatusCodes.CREATED(201)).success(result);
   } catch (error) {
     next(error);
   }

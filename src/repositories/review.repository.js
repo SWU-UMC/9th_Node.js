@@ -29,7 +29,6 @@ export const findReviewByMission = async (user_id, mission_id) => {
         return review || null;
     } catch (err) {
         console.error("해당 미션 작성 유효성 검사 중 오류: ", err);
-        throw err;
     }
 };
 
@@ -49,7 +48,6 @@ export const createReview = async (data) => {
         return review;
     } catch (err) {
         console.error("리뷰 추가하던 중 오류: ", err);
-        throw err;
     }
 };
 
@@ -64,7 +62,6 @@ export const getReviewById = async (review_id) => {
         return review || null;
     } catch (err) {
         console.error("리뷰 Id로 리뷰 조회 중 오류: ", err);
-        throw err;
     }
 };
 
@@ -99,6 +96,5 @@ export const getMyReviews = async (user_id, cursor = null, limit = 5) => {
     return { reviews, nextCursor };
   } catch (err) {
     console.error("getRestaurantReviews Error:", err);
-    throw err;
   }
 };

@@ -77,7 +77,7 @@ export const handleUserSignUp = async (req, res, next) => {
   try {
     const user = await userSignUp(bodyToUser(req.body));
     
-    res.status(StatusCodes.OK).success(user);
+    res.status(StatusCodes.CREATED(201)).success(user);
   } catch (error) {
     next(error);
   }
