@@ -30,6 +30,7 @@ export const bodyToUser = (body) => {
 
   return {
     email: body.email, // 필수
+    password: body.password, // 필수
     name: body.name, // 필수
     gender, // MALE, FEMALE, OTHER
     birth, // YYYY-MM-DD 형식

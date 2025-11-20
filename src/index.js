@@ -72,7 +72,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:3000',
+  origin: [
+    process.env.CLIENT_URL || 'http://localhost:3000',
+    'http://127.0.0.1:5500'
+  ],
   credentials: true
 }));
 app.use(express.static('public')); // 정적 파일 제공
@@ -183,7 +186,13 @@ app.get('/', (req, res) => {
 const apiRouter = express.Router();
 
 // 사용자 관련 라우트
-apiRouter.post("/users/signup", signUp);
+apiRouter.post("/users/signup", async (req, res, next) => {
+  try {
+    await signUp(req, res, next);
+  } catch (error) {
+    next(error);
+  }
+});
 
 // 가게 관련 라우트
 apiRouter.get('/stores/:storeId', getStoreById);

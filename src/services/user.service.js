@@ -64,23 +64,27 @@ export const userSignUp = async (userData) => {
     // 1. 입력 데이터 유효성 검사
     validateUserInput(userData);
 
-    // 2. 비밀번호 해싱
-    const hashedPassword = await hashPassword(userData.password);
-    
-    // 3. 선호 카테고리 ID로 변환
-    const foodCategoryIds = mapPreferencesToCategoryIds(userData.preferences);
-
-    // 4. 사용자 정보와 선호 카테고리 등록
-    const user = await createUserWithPreferences({
+    // 2. 사용자 데이터 준비
+    const userDataToCreate = {
       email: userData.email,
-      password: hashedPassword,
       name: userData.name,
       gender: userData.gender,
       birth: userData.birth ? new Date(userData.birth) : null,
       address: userData.address,
-      detailAddress: userData.detailAddress,
-      phoneNumber: userData.phoneNumber
-    }, foodCategoryIds);
+      detailAddress: userData.detailAddress || null,
+      phoneNumber: userData.phoneNumber || null
+    };
+
+    // 3. 비밀번호가 제공된 경우에만 해싱
+    if (userData.password) {
+      userDataToCreate.password = await hashPassword(userData.password);
+    }
+    
+    // 4. 선호 카테고리 ID로 변환
+    const foodCategoryIds = mapPreferencesToCategoryIds(userData.preferences || []);
+
+    // 5. 사용자 정보와 선호 카테고리 등록
+    const user = await createUserWithPreferences(userDataToCreate, foodCategoryIds);
 
     // 5. 등록된 사용자 정보 조회 (선호 카테고리 포함)
     const userWithPreferences = await getUser(user.id);
@@ -113,60 +117,84 @@ export const userSignUp = async (userData) => {
  * @throws {ValidationError} 유효성 검사 실패 시
  */
 function validateUserInput(data) {
-  // 1. 필수 필드 검증
-  const requiredFields = ['email', 'password', 'name', 'gender', 'birth', 'address'];
-  const missingFields = requiredFields.filter(field => !data[field]);
+  // 1. 필수 필드 검증 (password는 선택사항으로 변경)
+  const requiredFields = ['email', 'name', 'gender', 'birth', 'address'];
+  const missingFields = requiredFields.filter(field => !data[field] && data[field] !== 0);
   
   if (missingFields.length > 0) {
-    throw new ValidationError(
-      '필수 입력 항목이 누락되었습니다.',
-      missingFields.map(field => ({
+    const details = {};
+    missingFields.forEach((field, index) => {
+      details[index] = {
         field,
         message: `${field}은(는) 필수 입력 항목입니다.`
-      }))
-    );
+      };
+    });
+    details.errors = ['필수 입력 항목이 누락되었습니다.'];
+    
+    const error = new ValidationError('유효성 검사에 실패했습니다.');
+    error.details = details;
+    throw error;
   }
   
   // 2. 이메일 형식 검증
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(data.email)) {
-    throw new ValidationError('유효하지 않은 이메일 형식입니다.', [
-      { field: 'email', message: '유효한 이메일 주소를 입력해주세요.' }
-    ]);
+    const error = new ValidationError('유효성 검사에 실패했습니다.');
+    error.details = {
+      0: { field: 'email', message: '유효한 이메일 주소를 입력해주세요.' },
+      errors: ['유효하지 않은 이메일 형식입니다.']
+    };
+    throw error;
   }
   
-  // 3. 비밀번호 복잡성 검증
-  const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/;
-  if (!passwordRegex.test(data.password)) {
-    throw new ValidationError('비밀번호는 최소 8자 이상, 영문, 숫자, 특수문자를 모두 포함해야 합니다.', [
-      { 
-        field: 'password', 
-        message: '비밀번호는 영문, 숫자, 특수문자를 조합하여 8자 이상이어야 합니다.' 
-      }
-    ]);
+  // 3. 비밀번호 복잡성 검증 (비밀번호가 있는 경우에만 검증)
+  if (data.password && data.password.trim() !== '') {
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/;
+    if (!passwordRegex.test(data.password)) {
+      const error = new ValidationError('유효성 검사에 실패했습니다.');
+      error.details = {
+        0: { 
+          field: 'password', 
+          message: '비밀번호는 영문, 숫자, 특수문자를 조합하여 8자 이상이어야 합니다.' 
+        },
+        errors: ['비밀번호는 최소 8자 이상, 영문, 숫자, 특수문자를 모두 포함해야 합니다.']
+      };
+      throw error;
+    }
   }
   
   // 4. 성별 유효성 검증
-  const validGenders = ['MALE', 'FEMALE', 'OTHER'];
+  const validGenders = ['MALE', 'FEMALE', 'OTHER', '남성', '여성', '기타'];
   if (!validGenders.includes(data.gender)) {
-    throw new ValidationError('유효하지 않은 성별입니다.', [
-      { 
+    const error = new ValidationError('유효성 검사에 실패했습니다.');
+    error.details = {
+      0: { 
         field: 'gender', 
-        message: '성별은 MALE, FEMALE, OTHER 중 하나여야 합니다.' 
-      }
-    ]);
+        message: '성별은 MALE, FEMALE, OTHER, 남성, 여성, 기타 중 하나여야 합니다.' 
+      },
+      errors: ['유효하지 않은 성별입니다.']
+    };
+    throw error;
   }
+  
+  // 성별을 영어로 변환 (한국어인 경우)
+  if (data.gender === '남성') data.gender = 'MALE';
+  if (data.gender === '여성') data.gender = 'FEMALE';
+  if (data.gender === '기타') data.gender = 'OTHER';
   
   // 5. 생년월일 유효성 검증
   if (data.birth) {
     const birthDate = new Date(data.birth);
     if (isNaN(birthDate.getTime())) {
-      throw new ValidationError('유효하지 않은 생년월일 형식입니다.', [
-        { 
+      const error = new ValidationError('유효성 검사에 실패했습니다.');
+      error.details = {
+        0: { 
           field: 'birth', 
           message: '올바른 날짜 형식(YYYY-MM-DD)으로 입력해주세요.' 
-        }
-      ]);
+        },
+        errors: ['유효하지 않은 생년월일 형식입니다.']
+      };
+      throw error;
     }
   }
 }

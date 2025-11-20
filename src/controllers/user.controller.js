@@ -66,7 +66,7 @@ import { prisma } from '../db.config.js';
 /**
  * 사용자 회원가입 컨트롤러
  */
-export const signUp = async (req, res) => {
+export const signUp = async (req, res, next) => {
   try {
     console.log('\n=== 회원가입 요청 시작 ===');
     console.log('요청 바디:', JSON.stringify(req.body, null, 2));
@@ -81,7 +81,7 @@ export const signUp = async (req, res) => {
     console.log('변환된 사용자 데이터:', JSON.stringify(userData, null, 2));
 
     // 회원가입 서비스 호출
-    const user = await userSignUp(prisma, {
+    const user = await userSignUp({
       ...userData,
       birth: userData.birth ? new Date(userData.birth) : null
     });
