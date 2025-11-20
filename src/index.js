@@ -3,6 +3,8 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import swaggerAutogen from "swagger-autogen";
+import swaggerUiExpress from "swagger-ui-express";
 
 // Get the current directory name in ES module
 const __filename = fileURLToPath(import.meta.url);
@@ -192,6 +194,43 @@ apiRouter.post("/users/signup", async (req, res, next) => {
   } catch (error) {
     next(error);
   }
+});
+
+
+// Swagger Documentation
+const swaggerSpec = {
+  definition: {
+    openapi: "3.0.0",
+    info: {
+      title: "UMC 9th API",
+      version: "1.0.0",
+      description: "UMC 9th Node.js 테스트 프로젝트 API 문서입니다."
+    },
+    servers: [
+      {
+        url: "http://localhost:3000",
+        description: "Local server"
+      }
+    ],
+  },
+  apis: ["./src/**/*.js"] // Path to the API routes
+};
+
+// Swagger UI
+app.use(
+  "/docs",
+  swaggerUiExpress.serve,
+  swaggerUiExpress.setup(swaggerSpec.definition, {
+    explorer: true,
+    customCss: '.swagger-ui .topbar { display: none }',
+    customSiteTitle: "UMC 9th API 문서"
+  })
+);
+
+// OpenAPI JSON
+app.get("/openapi.json", (req, res) => {
+  res.setHeader("Content-Type", "application/json");
+  res.send(swaggerSpec.definition);
 });
 
 // 가게 관련 라우트
