@@ -9,6 +9,7 @@ import { prisma } from '../db.config.js';
  * /api/users/signup:
  *   post:
  *     summary: 사용자 회원가입
+ *     description: 새로운 사용자를 시스템에 등록합니다. 이메일, 비밀번호, 이름, 성별, 생년월일, 주소는 필수 입력 항목입니다.
  *     tags: [User]
  *     requestBody:
  *       required: true
@@ -27,26 +28,43 @@ import { prisma } from '../db.config.js';
  *               email:
  *                 type: string
  *                 format: email
+ *                 description: 사용자 이메일 (로그인 ID로 사용)
+ *                 example: "user@example.com"
  *               password:
  *                 type: string
  *                 format: password
  *                 minLength: 8
+ *                 description: 비밀번호 (8자 이상)
+ *                 example: "password123!"
  *               name:
  *                 type: string
+ *                 description: 사용자 실명
+ *                 example: "홍길동"
  *               gender:
  *                 type: string
  *                 enum: [MALE, FEMALE, OTHER]
+ *                 description: 성별
+ *                 example: "MALE"
  *               birth:
  *                 type: string
  *                 format: date
+ *                 description: 생년월일 (YYYY-MM-DD)
+ *                 example: "1990-01-01"
  *               address:
  *                 type: string
+ *                 description: 기본 주소
+ *                 example: "서울특별시 강남구 테헤란로 123"
  *               detailAddress:
  *                 type: string
+ *                 description: 상세 주소
+ *                 example: "101동 101호"
  *               phoneNumber:
  *                 type: string
+ *                 description: 휴대폰 번호 ('-' 제외)
+ *                 example: "01012345678"
  *               preferences:
  *                 type: array
+ *                 description: 선호 카테고리 목록 (선택사항)
  *                 items:
  *                   type: string
  *     responses:
