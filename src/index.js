@@ -3,7 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import swaggerAutogen from "swagger-autogen";
+import swaggerJsdoc from 'swagger-jsdoc';
 import swaggerUiExpress from "swagger-ui-express";
 
 // Get the current directory name in ES module
@@ -197,8 +197,8 @@ apiRouter.post("/users/signup", async (req, res, next) => {
 });
 
 
-// Swagger Documentation
-const swaggerSpec = {
+// Swagger 설정
+const options = {
   definition: {
     openapi: "3.0.0",
     info: {
@@ -208,29 +208,46 @@ const swaggerSpec = {
     },
     servers: [
       {
-        url: "http://localhost:3000",
+        url: "http://localhost:3000/api/v1",
         description: "Local server"
       }
     ],
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT"
+        }
+      }
+    },
+    security: [
+      {
+        bearerAuth: []
+      }
+    ]
   },
-  apis: ["./src/**/*.js"] // Path to the API routes
+  apis: ["./src/**/*.js"]
 };
+
+const swaggerSpec = swaggerJsdoc(options);
 
 // Swagger UI
 app.use(
   "/docs",
   swaggerUiExpress.serve,
-  swaggerUiExpress.setup(swaggerSpec.definition, {
+  swaggerUiExpress.setup(swaggerSpec, {
     explorer: true,
     customCss: '.swagger-ui .topbar { display: none }',
     customSiteTitle: "UMC 9th API 문서"
   })
 );
 
-// OpenAPI JSON
+// OpenAPI JSON - Swagger UI에서 숨김
 app.get("/openapi.json", (req, res) => {
+  // #swagger.ignore = true
   res.setHeader("Content-Type", "application/json");
-  res.send(swaggerSpec.definition);
+  res.send(swaggerSpec);
 });
 
 // 가게 관련 라우트
@@ -246,6 +263,13 @@ apiRouter.post('/missions/:missionId/challenge', handleChallengeMission);
 
 // API 버저닝
 app.use('/api/v1', apiRouter);
+
+// Swagger 문서에서 숨길 라우트
+app.get('/openapi.json', (req, res) => {
+  // #swagger.ignore = true
+  res.setHeader("Content-Type", "application/json");
+  res.send(swaggerSpec);
+});
 
 // Global error handler middleware
 app.use((err, req, res, next) => {
