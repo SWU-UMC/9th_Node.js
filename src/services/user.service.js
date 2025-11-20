@@ -8,13 +8,11 @@ import {
 } from "../repositories/user.repository.js";
 import { prisma } from "../db.config.js";
 import { DuplicateUserEmailError } from "../errors.js";
+import { ensureString } from "../utils/validation.js";
 
 export const userSignUp = async (data) => {
   // 비밀번호 검증
-  const pwd = (data.password ?? "").toString().trim();
-  if (!pwd) {
-    throw new Error("비밀번호는 필수입니다.");
-  }
+  const pwd = ensureString(data.password, "비밀번호");
 
   // preferences 정규화
   const prefs = Array.isArray(data.preferences)
@@ -32,7 +30,10 @@ export const userSignUp = async (data) => {
     });
 
     if (count !== ids.length) {
-      throw new Error("존재하지 않는 카테고리가 포함되어 있습니다.");
+      throw new ValidationError("존재하지 않는 카테고리가 포함되어 있습니다.", {
+        field: "preferences",
+        value: data.preferences,
+      });
     }
   }
 
@@ -65,5 +66,5 @@ export const userSignUp = async (data) => {
   const user = await getUser(userId);
   const preferences = await getUserPreferencesByUserId(userId);
 
-  return responseFromUser(user, preferences);
+  return responseFromUser({ user, preferences });
 };
