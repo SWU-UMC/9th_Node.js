@@ -4,18 +4,18 @@ import cors from "cors";
 import swaggerAutogen from "swagger-autogen";
 import swaggerUiExpress from "swagger-ui-express";
 
-import { handleUserSignUp } from "./src/controllers/user.controller.js";
-import { handleAddStore } from "./src/controllers/store.controller.js";
+import { handleUserSignUp } from "./controllers/user.controller.js";
+import { handleAddStore } from "./controllers/store.controller.js";
 import { handleAddReview,
         handleListUserReviews,
-        handleListStoreReviews, } from "./src/controllers/review.controller.js";
+        handleListStoreReviews, } from "./controllers/review.controller.js";
 import { handleAddMission,
-        handleListMissionsByStore, } from "./src/controllers/mission.controller.js";
+        handleListMissionsByStore, } from "./controllers/mission.controller.js";
 import {
   handleChallengeMission,
   handleListActiveMissions,
   handleCompleteMission,
-} from "./src/controllers/userMission.controller.js";
+} from "./controllers/userMission.controller.js";
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
 
@@ -31,15 +31,6 @@ app.use((req, res, next) => {
   res.success = (success) => {
     return res.json({ resultType: "SUCCESS", error: null, success });
   };
-  
-  // 오류로 잠시 주석 처리 했습니다...
-  // res.errored = ({ errorCode = "unknown", reason = null, data = null }) => {
-  //   return res.json({
-  //     resultType: "FAIL",
-  //     error: { errorCode, reason, data },
-  //     success: null,
-  //   });
-  // };
 
   next();
 });

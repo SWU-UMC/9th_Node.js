@@ -33,19 +33,23 @@ export const handleAddReview = async (req, res, next) => {
 
     #swagger.responses[201] = {
       description: '리뷰 등록 성공',
-      schema: {
-        $ref: '#/components/schemas/SuccessResponse',
-        example: {
-          resultType: "SUCCESS",
-          error: null,
-          success: {
-            id: 1,
-            userMissionId: 10,
-            body: "정말 맛있어요!! 또 올게요.",
-            score: 5,
-            imageCount: 1,
-            createdAt: "2025-01-15T12:00:00.000Z",
-            updatedAt: "2025-01-15T12:00:00.000Z"
+      content: {
+        "application/json": {
+          schema: {
+            $ref: '#/components/schemas/SuccessResponse'
+          },
+          example: {
+            resultType: "SUCCESS",
+            error: null,
+            success: {
+              id: 1,
+              userMissionId: 10,
+              body: "정말 맛있어요!! 또 올게요.",
+              score: 5,
+              imageCount: 1,
+              createdAt: "2025-01-15T12:00:00.000Z",
+              updatedAt: "2025-01-15T12:00:00.000Z"
+            }
           }
         }
       }
@@ -53,22 +57,99 @@ export const handleAddReview = async (req, res, next) => {
 
     #swagger.responses[400] = {
       description: '잘못된 요청 (필수 필드 누락, score 범위 오류 등)',
-      schema: { $ref: '#/components/schemas/ErrorResponse' }
+      content: {
+        "application/json": {
+          schema: {
+            $ref: '#/components/schemas/ErrorResponse'
+          },
+          example: {
+            resultType: "FAIL",
+            error: {
+              errorCode: "unknown",
+              reason: "요청 형식이 올바르지 않습니다. (예: userMissionId 누락, score 범위 오류 등)",
+              data: null
+            },
+            success: null
+          }
+        }
+      }
     }
 
     #swagger.responses[404] = {
       description: '가게(store_id) 또는 유저 미션(userMissionId)을 찾을 수 없는 경우',
-      schema: { $ref: '#/components/schemas/ErrorResponse' }
+      content: {
+        "application/json": {
+          schema: {
+            $ref: '#/components/schemas/ErrorResponse'
+          },
+          examples: {
+            StoreNotFound: {
+              summary: "가게가 존재하지 않는 경우",
+              value: {
+                resultType: "FAIL",
+                error: {
+                  errorCode: "U006",
+                  reason: "존재하지 않는 가게입니다.",
+                  data: { storeId: 3 }
+                },
+                success: null
+              }
+            },
+            MissionNotFound: {
+              summary: "유저 미션이 존재하지 않는 경우",
+              value: {
+                resultType: "FAIL",
+                error: {
+                  errorCode: "U004",
+                  reason: "미션 정보를 찾을 수 없습니다.",
+                  data: { userMissionId: 10 }
+                },
+                success: null
+              }
+            }
+          }
+        }
+      }
     }
 
     #swagger.responses[409] = {
       description: '이미 해당 미션에 대한 리뷰가 존재하는 경우 (중복 리뷰)',
-      schema: { $ref: '#/components/schemas/ErrorResponse' }
+      content: {
+        "application/json": {
+          schema: {
+            $ref: '#/components/schemas/ErrorResponse'
+          },
+          example: {
+            resultType: "FAIL",
+            error: {
+              errorCode: "U005",
+              reason: "이미 리뷰를 작성한 미션입니다.",
+              data: { userMissionId: 10 }
+            },
+            success: null
+          }
+        }
+      }
     }
 
     #swagger.responses[500] = {
       description: '서버 내부 오류',
-      schema: { $ref: '#/components/schemas/ErrorResponse' }
+      content: {
+        "application/json": {
+          schema: {
+            $ref: "#/components/schemas/ErrorResponse"
+          },
+          example: {
+            resultType: "FAIL",
+            error: {
+              errorCode: "unknown",
+              reason: "서버 내부 오류가 발생했습니다.",
+              data: null
+            },
+            success: null
+          }
+        }
+      }
     }
   */
 
@@ -109,46 +190,80 @@ export const handleListStoreReviews = async (req, res, next) => {
 
     #swagger.responses[200] = {
       description: '리뷰 목록 조회 성공',
-      schema: {
-        $ref: '#/components/schemas/SuccessResponse',
-        example: {
-          resultType: "SUCCESS",
-          error: null,
-          success: {
-            data: [
-              {
-                id: 1,
-                nickname: "워니",
-                profileImage: "https://example.com/profile.png",
-                score: 5,
-                body: "정말 맛있어요!",
-                createdAt: "2025-01-15T12:00:00.000Z"
-              },
-              {
-                id: 2,
-                nickname: "길동",
-                profileImage: null,
-                score: 4,
-                body: "괜찮았어요.",
-                createdAt: "2025-01-16T09:30:00.000Z"
+      content: {
+        "application/json": {
+          schema: {
+            $ref: '#/components/schemas/SuccessResponse'
+          },
+          example: {
+            resultType: "SUCCESS",
+            error: null,
+            success: {
+              data: [
+                {
+                  id: 1,
+                  nickname: "워니",
+                  profileImage: "https://example.com/profile.png",
+                  score: 5,
+                  body: "정말 맛있어요!",
+                  createdAt: "2025-01-15T12:00:00.000Z"
+                },
+                {
+                  id: 2,
+                  nickname: "길동",
+                  profileImage: null,
+                  score: 4,
+                  body: "괜찮았어요.",
+                  createdAt: "2025-01-16T09:30:00.000Z"
+                }
+              ],
+              pagination: {
+                cursor: 2
               }
-            ],
-            pagination: {
-              cursor: 2
             }
           }
         }
       }
     }
-
+    
     #swagger.responses[404] = {
       description: '해당 store_id에 대한 가게가 존재하지 않는 경우',
-      schema: { $ref: '#/components/schemas/ErrorResponse' }
+      content: {
+        "application/json": {
+          schema: {
+            $ref: '#/components/schemas/ErrorResponse'
+          },
+          example: {
+            resultType: "FAIL",
+            error: {
+              errorCode: "U006",
+              reason: "해당 가게(store_id)를 찾을 수 없습니다.",
+              data: { storeId: 3 }
+            },
+            success: null
+          }
+        }
+      }
     }
 
     #swagger.responses[500] = {
       description: '서버 내부 오류',
-      schema: { $ref: '#/components/schemas/ErrorResponse' }
+      content: {
+        "application/json": {
+          schema: {
+            $ref: '#/components/schemas/ErrorResponse'
+          },
+          example: {
+            resultType: "FAIL",
+            error: {
+              errorCode: "unknown",
+              reason: "서버 내부 오류가 발생했습니다.",
+              data: null
+            },
+            success: null
+          }
+        }
+      }
     }
   */
 
@@ -187,41 +302,60 @@ export const handleListUserReviews = async (req, res, next) => {
 
     #swagger.responses[200] = {
       description: '내 리뷰 목록 조회 성공',
-      schema: {
-        $ref: '#/components/schemas/SuccessResponse',
-        example: {
-          resultType: "SUCCESS",
-          error: null,
-          success: {
-            data: [
-              {
-                id: 1,
-                storeName: "홍대 떡볶이",
-                body: "여기 떡볶이 최고",
-                score: 5,
-                imageCount: 2,
-                createdAt: "2025-01-15T12:00:00.000Z"
-              },
-              {
-                id: 2,
-                storeName: "강남 김밥천국",
-                body: "간단하게 먹기 좋음",
-                score: 4,
-                imageCount: 0,
-                createdAt: "2025-01-16T09:30:00.000Z"
+      content: {
+        "application/json" : {
+          schema: {
+            $ref: '#/components/schemas/SuccessResponse'
+          },
+          example: {
+            resultType: "SUCCESS",
+            error: null,
+            success: {
+              data: [
+                {
+                  id: 1,
+                  storeName: "홍대 떡볶이",
+                  body: "여기 떡볶이 최고",
+                  score: 5,
+                  imageCount: 2,
+                  createdAt: "2025-01-15T12:00:00.000Z"
+                },
+                {
+                  id: 2,
+                  storeName: "강남 김밥천국",
+                  body: "간단하게 먹기 좋음",
+                  score: 4,
+                  imageCount: 0,
+                  createdAt: "2025-01-16T09:30:00.000Z"
+                }
+              ],
+              pagination: {
+                cursor: 2
               }
-            ],
-            pagination: {
-              cursor: 2
             }
-          }
+          }  
         }
       }
     }
 
     #swagger.responses[500] = {
       description: '서버 내부 오류',
-      schema: { $ref: '#/components/schemas/ErrorResponse' }
+      content: {
+        "application/json": {
+          schema: {
+            $ref: "#/components/schemas/ErrorResponse"
+          },
+          example: {
+            resultType: "FAIL",
+            error: {
+              errorCode: "unknown",
+              reason: "서버 내부 오류가 발생했습니다.",
+              data: null
+            },
+            success: null
+          }
+        }
+      }
     }
   */
 

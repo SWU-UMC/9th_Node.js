@@ -24,15 +24,19 @@ export const handleUserSignUp = async (req, res, next) => {
     
     #swagger.responses[201] = {
       description: '회원가입 성공',
-      schema: {
-        $ref: '#/components/schemas/SuccessResponse',
-        example: {
-          resultType: "SUCCESS",
-          error: null,
-          success: {
-            id: 1,
-            email: "test@example.com",
-            nickname: "워니"
+      content: {
+        "application/json": {
+          schema: {
+            $ref: '#/components/schemas/SuccessResponse'
+          },
+          example: {
+            resultType: "SUCCESS",
+            error: null,
+            success: {
+              id: 1,
+              email: "test@example.com",
+              nickname: "워니"
+            }
           }
         }
       }
@@ -40,32 +44,40 @@ export const handleUserSignUp = async (req, res, next) => {
 
     #swagger.responses[400] = {
       description: '비밀번호 규칙 위반 등 잘못된 요청',
-      schema: {
-        $ref: '#/components/schemas/ErrorResponse',
-        example: {
-          resultType: "FAIL",
-          error: {
-            errorCode: "U002",
-            reason: "비밀번호 규칙 위반",
-            data: null
+      content: {
+        "application/json": {
+          schema: {
+            $ref: '#/components/schemas/ErrorResponse'
           },
-          success: null
+          example: {
+            resultType: "FAIL",
+            error: {
+              errorCode: "U002",
+              reason: "비밀번호 규칙 위반",
+              data: null
+            },
+            success: null
+          }
         }
       }
     }
 
     #swagger.responses[409] = {
       description: '이메일 중복',
-      schema: {
-        $ref: '#/components/schemas/ErrorResponse',
-        example: {
-          resultType: "FAIL",
-          error: {
-            errorCode: "U001",
-            reason: "이미 사용 중인 이메일입니다.",
-            data: { email: "test@example.com" }
+      content: {
+        "application/json": {
+          schema: {
+            $ref: '#/components/schemas/ErrorResponse'
           },
-          success: null
+          example: {
+            resultType: "FAIL",
+            error: {
+              errorCode: "U001",
+              reason: "이미 사용 중인 이메일입니다.",
+              data: { email: "test@example.com" }
+            },
+            success: null
+          }
         }
       }
     }
