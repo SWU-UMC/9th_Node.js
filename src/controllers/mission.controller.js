@@ -14,7 +14,7 @@ import { serialize } from "../utils/serialize.js";
 // POST /stores/:storeId/missions
 export const handleAddMission = async (req, res, next) => {
   /*
-    #swagger.tags = ['Mission']
+    #swagger.tags = ['Store']
     #swagger.summary = '가게에 미션 추가 API'
     #swagger.description = ':storeId에 해당하는 가게에 새로운 미션을 추가'
 
@@ -77,6 +77,64 @@ export const handleAddMission = async (req, res, next) => {
         }
       }
     }
+
+    #swagger.responses[400] = {
+      description: "reward, missionSpec, deadline 형식이 유효하지 않은 경우",
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              resultType: { type: "string", example: "FAIL" },
+              error: {
+                type: "object",
+                properties: {
+                  errorCode: { type: "string", example: "V001" },
+                  reason: {
+                    type: "string",
+                    example: "reward는 양의 숫자여야 합니다."
+                  },
+                  data: {
+                    type: "object",
+                    example: { reward: -100 }
+                  }
+                }
+              },
+              success: { type: "object", nullable: true, example: null }
+            }
+          }
+        }
+      }
+    }
+
+    #swagger.responses[404] = {
+      description: "가게를 찾을 수 없는 경우",
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              resultType: { type: "string", example: "FAIL" },
+              error: {
+                type: "object",
+                properties: {
+                  errorCode: { type: "string", example: "S001" },
+                  reason: {
+                    type: "string",
+                    example: "가게를 찾을 수 없습니다."
+                  },
+                  data: {
+                    type: "object",
+                    example: { storeId: 999 }
+                  }
+                }
+              },
+              success: { type: "object", nullable: true, example: null }
+            }
+          }
+        }
+      }
+    }
   */
   try {
     const mission = await addMissionToStore(
@@ -129,6 +187,85 @@ export const handleChallengeMission = async (req, res, next) => {
           }
         }
       }
+    };
+
+    #swagger.responses[404] = {
+      description: "미션 또는 유저가 존재하지 않는 경우",
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            oneOf: [
+              {
+                properties: {
+                  resultType: { type: "string", example: "FAIL" },
+                  error: {
+                    type: "object",
+                    properties: {
+                      errorCode: { type: "string", example: "M001" },
+                      reason: {
+                        type: "string",
+                        example: "미션을 찾을 수 없습니다."
+                      },
+                      data: { type: "object", example: { missionId: 999 } }
+                    }
+                  },
+                  success: { type: "object", nullable: true, example: null }
+                }
+              },
+              {
+                properties: {
+                  resultType: { type: "string", example: "FAIL" },
+                  error: {
+                    type: "object",
+                    properties: {
+                      errorCode: { type: "string", example: "U002" },
+                      reason: {
+                        type: "string",
+                        example: "회원가입을 먼저 해주세요."
+                      },
+                      data: { type: "object", example: {} }
+                    }
+                  },
+                  success: { type: "object", nullable: true, example: null }
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+
+    #swagger.responses[409] = {
+      description: "이미 도전 중이거나 완료한 미션인 경우",
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              resultType: { type: "string", example: "FAIL" },
+              error: {
+                type: "object",
+                properties: {
+                  errorCode: {
+                    type: "string",
+                    example: "M002"
+                  },
+                  reason: {
+                    type: "string",
+                    example: "이미 도전 중인 미션입니다."
+                  },
+                  data: {
+                    type: "object",
+                    example: { missionId: 1, userId: 1 }
+                  }
+                }
+              },
+              success: { type: "object", nullable: true, example: null }
+            }
+          }
+        }
+      }
     }
   */
   try {
@@ -143,7 +280,7 @@ export const handleChallengeMission = async (req, res, next) => {
 export const handleListUserMissions = async (req, res, next) => {
   /*
     #swagger.tags = ['Mission']
-    #swagger.summary = '유저 진행 중 미션 목록 조회 API'
+    #swagger.summary = '특정 유저 진행 중 미션 목록 조회 API'
     #swagger.description = ':userId 사용자가 진행 중(IN_PROGRESS)인 미션 목록을 조회'
 
     #swagger.parameters['userId'] = {
@@ -220,6 +357,35 @@ export const handleListUserMissions = async (req, res, next) => {
         }
       }
     }
+
+    #swagger.responses[400] = {
+      description: "userId, cursor, take 값이 유효하지 않은 경우",
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              resultType: { type: "string", example: "FAIL" },
+              error: {
+                type: "object",
+                properties: {
+                  errorCode: { type: "string", example: "V001" },
+                  reason: {
+                    type: "string",
+                    example: "userId는 숫자여야 합니다."
+                  },
+                  data: {
+                    type: "object",
+                    example: { userId: "abc", cursor: -1, take: 0 }
+                  }
+                }
+              },
+              success: { type: "object", nullable: true, example: null }
+            }
+          }
+        }
+      }
+    }
   */
   try {
     const userId = Number(req.params.userId);
@@ -286,6 +452,59 @@ export const handleCompleteUserMission = async (req, res, next) => {
                 }
               }
             }
+          }
+        }
+      }
+    }
+
+    #swagger.responses[409] = {
+      description: "이미 완료했거나, 도전 기록이 없는 경우",
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            oneOf: [
+              {
+                properties: {
+                  resultType: { type: "string", example: "FAIL" },
+                  error: {
+                    type: "object",
+                    properties: {
+                      errorCode: { type: "string", example: "M003" },
+                      reason: {
+                        type: "string",
+                        example: "이미 완료한 미션입니다."
+                      },
+                      data: {
+                        type: "object",
+                        example: { missionId: 5, userId: 1 }
+                      }
+                    }
+                  },
+                  success: { type: "object", nullable: true, example: null }
+                }
+              },
+              {
+                properties: {
+                  resultType: { type: "string", example: "FAIL" },
+                  error: {
+                    type: "object",
+                    properties: {
+                      errorCode: { type: "string", example: "C000" },
+                      reason: {
+                        type: "string",
+                        example: "해당 유저의 미션 도전 기록이 없습니다."
+                      },
+                      data: {
+                        type: "object",
+                        example: { missionId: 5, userId: 1 }
+                      }
+                    }
+                  },
+                  success: { type: "object", nullable: true, example: null }
+                }
+              }
+            ]
           }
         }
       }

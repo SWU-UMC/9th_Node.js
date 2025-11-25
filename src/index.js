@@ -22,6 +22,7 @@ import morgan from "morgan";
 import cookieParser from "cookie-parser";
 import swaggerAutogen from "swagger-autogen";
 import swaggerUiExpress from "swagger-ui-express";
+import { serialize } from "./utils/serialize.js";
 
 dotenv.config();
 
@@ -163,10 +164,19 @@ app.use((err, req, res, next) => {
 
   console.error("INTERNAL ERROR:", err);
 
+  let safeData = null;
+  if (err.data) {
+    try {
+      safeData = serialize(err.data);
+    } catch {
+      safeData = err.data;
+    }
+  }
+
   res.status(err.statusCode || 500).error({
     errorCode: err.errorCode || "unknown",
     reason: err.reason || err.message || null,
-    data: err.data || null,
+    data: safeData,
   });
 });
 

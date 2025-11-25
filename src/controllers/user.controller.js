@@ -63,7 +63,35 @@ export const handleUserSignUp = async (req, res, next) => {
     }
   };
   #swagger.responses[400] = {
-    description: "회원 가입 실패 응답",
+    description: "요청 값이 유효하지 않은 경우",
+    content: {
+      "application/json": {
+        schema: {
+          type: "object",
+          properties: {
+            resultType: { type: "string", example: "FAIL" },
+            error: {
+              type: "object",
+              properties: {
+                errorCode: { type: "string", example: "V001" },
+                reason: {
+                  type: "string",
+                  example: "유효하지 않은 요청입니다."
+                },
+                data: {
+                  type: "object",
+                  example: { field: "email", value: "not-an-email" }
+                }
+              }
+            },
+            success: { type: "object", nullable: true, example: null }
+          }
+        }
+      }
+    }
+  };
+  #swagger.responses[409] = {
+    description: "이미 존재하는 이메일인 경우",
     content: {
       "application/json": {
         schema: {

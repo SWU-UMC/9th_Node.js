@@ -4,7 +4,7 @@ import {
   listMyReviews,
   listReviewsByUserId,
 } from "../services/review.service.js";
-import { responseFromReview } from "../dtos/review.dto.js";
+import { toPlainReview } from "../dtos/review.dto.js";
 
 export const handleAddReview = async (req, res, next) => {
   /*  
@@ -62,10 +62,91 @@ export const handleAddReview = async (req, res, next) => {
         }
       }
     }
+    #swagger.responses[400] = {
+      description: "요청 값이 유효하지 않은 경우 (score 범위, body 필수 등)",
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              resultType: { type: "string", example: "FAIL" },
+              error: {
+                type: "object",
+                properties: {
+                  errorCode: { type: "string", example: "V001" },
+                  reason: {
+                    type: "string",
+                    example: "score는 1~5 사이의 숫자여야 합니다."
+                  },
+                  data: {
+                    type: "object",
+                    example: { score: 10 }
+                  }
+                }
+              },
+              success: { type: "object", nullable: true, example: null }
+            }
+          }
+        }
+      }
+    }
+
+    #swagger.responses[404] = {
+      description: "가게 또는 유저가 없는 경우",
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            oneOf: [
+              {
+                properties: {
+                  resultType: { type: "string", example: "FAIL" },
+                  error: {
+                    type: "object",
+                    properties: {
+                      errorCode: { type: "string", example: "S001" },
+                      reason: {
+                        type: "string",
+                        example: "가게를 찾을 수 없습니다."
+                      },
+                      data: {
+                        type: "object",
+                        example: { storeId: 999 }
+                      }
+                    }
+                  },
+                  success: { type: "object", nullable: true, example: null }
+                }
+              },
+              {
+                properties: {
+                  resultType: { type: "string", example: "FAIL" },
+                  error: {
+                    type: "object",
+                    properties: {
+                      errorCode: { type: "string", example: "U002" },
+                      reason: {
+                        type: "string",
+                        example: "사용자를 찾을 수 없습니다."
+                      },
+                      data: {
+                        type: "object",
+                        example: {}
+                      }
+                    }
+                  },
+                  success: { type: "object", nullable: true, example: null }
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
   */
   try {
     const review = await addReviewToStore(req.body, Number(req.params.storeId));
-    res.status(StatusCodes.CREATED).success(responseFromReview(review));
+    res.status(StatusCodes.CREATED).success(toPlainReview(review));
   } catch (err) {
     next(err);
   }
@@ -134,6 +215,34 @@ export const handleListMyReviews = async (req, res, next) => {
                   }
                 }
               }
+            }
+          }
+        }
+      }
+    }
+    #swagger.responses[404] = {
+      description: "유저가 존재하지 않는 경우",
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              resultType: { type: "string", example: "FAIL" },
+              error: {
+                type: "object",
+                properties: {
+                  errorCode: { type: "string", example: "U002" },
+                  reason: {
+                    type: "string",
+                    example: "사용자가 없습니다. 먼저 회원가입을 진행하세요."
+                  },
+                  data: {
+                    type: "object",
+                    example: {}
+                  }
+                }
+              },
+              success: { type: "object", nullable: true, example: null }
             }
           }
         }
@@ -225,6 +334,34 @@ export const handleListUserReviews = async (req, res, next) => {
                   }
                 }
               }
+            }
+          }
+        }
+      }
+    }
+    #swagger.responses[400] = {
+      description: "userId가 숫자가 아닌 경우 (ValidationError)",
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              resultType: { type: "string", example: "FAIL" },
+              error: {
+                type: "object",
+                properties: {
+                  errorCode: { type: "string", example: "V001" },
+                  reason: {
+                    type: "string",
+                    example: "userId는 숫자여야 합니다."
+                  },
+                  data: {
+                    type: "object",
+                    example: { userId: "abc" }
+                  }
+                }
+              },
+              success: { type: "object", nullable: true, example: null }
             }
           }
         }
