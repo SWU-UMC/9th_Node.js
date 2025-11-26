@@ -43,3 +43,15 @@ export const responseFromUserMissions = (missions) => {
     },
   };
 };
+
+// 사용자 정보 수정 요청 
+export const bodyToUserUpdate = (body) => {
+  return {
+    name: body.name || undefined,
+    gender: body.gender || undefined,
+    birth: body.birth ? new Date(body.birth) : undefined,
+    address: body.address || undefined,
+    detailAddress: body.detailAddress || undefined,
+    phoneNumber: body.phoneNumber || undefined,
+  };
+};

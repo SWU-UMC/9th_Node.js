@@ -4,6 +4,7 @@ import {
   userSignUp,
   listUserReviews,
   listUserMissions,
+  updateMyInfo,
 } from "../services/user.service.js";
 
 export const handleUserSignUp = async (req, res, next) => {
@@ -174,4 +175,36 @@ export const handleListUserMissions = async (req, res, next) => {
     typeof req.query.cursor === "string" ? parseInt(req.query.cursor) : 0
   );
   res.status(StatusCodes.OK).success(missions);
+};
+
+// 내 정보 수정 컨트롤러
+export const handleUpdateMyInfo = async (req, res, next) => {
+  /*
+    #swagger.summary = '내 정보 수정 API';
+    #swagger.security = [{ "bearerAuth": [] }]
+    #swagger.requestBody = {
+      required: true,
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              name: { type: "string", example: "홍길동" },
+              gender: { type: "string", example: "MALE" },
+              birth: { type: "string", example: "1999-01-01" },
+              address: { type: "string", example: "서울시 강남구" },
+              detailAddress: { type: "string", example: "101호" },
+              phoneNumber: { type: "string", example: "010-1234-5678" }
+            }
+          }
+        }
+      }
+    };
+  */
+  console.log("내 정보 수정을 요청했습니다!");
+  console.log("body:", req.body);
+
+  // 🚨 중요: userId는 req.body가 아니라 req.user.id (토큰)에서 가져옵니다.
+  const updatedUser = await updateMyInfo(req.user.id, req.body);
+  res.status(StatusCodes.OK).success(updatedUser);
 };
