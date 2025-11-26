@@ -5,6 +5,9 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import swaggerJsdoc from 'swagger-jsdoc';
 import swaggerUiExpress from "swagger-ui-express";
+import passport from "passport";
+import { googleStrategy, jwtStrategy } from "./auth.config.js";
+import { prisma } from "./db.config.js";
 
 // Get the current directory name in ES module
 const __filename = fileURLToPath(import.meta.url);
@@ -21,7 +24,6 @@ try {
 
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
-import { prisma } from './db.config.js';
 
 // 컨트롤러 임포트
 import { signUp } from './controllers/user.controller.js';
@@ -43,8 +45,9 @@ import {
   handleChallengeMission
 } from './controllers/mission.controller.js';
 
-// .env 파일 로드
-dotenv.config();
+// Passport 설정
+passport.use(googleStrategy);
+passport.use(jwtStrategy);
 
 // Prisma 클라이언트 연결 확인
 async function checkDatabaseConnection() {
@@ -71,7 +74,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 // 기본 미들웨어 설정
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: false })); // 원래 true였음
 app.use(cookieParser());
 app.use(cors({
   origin: [
@@ -81,6 +84,7 @@ app.use(cors({
   credentials: true
 }));
 app.use(express.static('public')); // 정적 파일 제공
+app.use(passport.initialize());
 
 // 성공/에러 응답 메서드 추가
 app.use((req, res, next) => {
@@ -234,6 +238,34 @@ const options = {
   },
   apis: ["./src/**/*.js"]
 };
+
+
+/* 9주차실습시작 */
+app.get("/oauth2/login/google", 
+  passport.authenticate("google", { 
+    session: false 
+  })
+);
+app.get(
+  "/oauth2/callback/google",
+  passport.authenticate("google", {
+	  session: false,
+    failureRedirect: "/login-failed",
+  }),
+  (req, res) => {
+    const tokens = req.user; 
+
+    res.status(200).json({
+      resultType: "SUCCESS",
+      error: null,
+      success: {
+          message: "Google 로그인 성공!",
+          tokens: tokens, // { "accessToken": "...", "refreshToken": "..." }
+      }
+    });
+  }
+);
+/* 9주차실습끝 */
 
 const swaggerSpec = swaggerJsdoc(options);
 
@@ -447,24 +479,8 @@ startServer().catch(error => {
 
 app.get("/api/v1/stores/:storeId/reviews", handleListStoreReviews);
 
-
-
-//7주차 시작
-const isLogin = (req, res, next) => {
-    // cookie-parser가 만들어준 req.cookies 객체에서 username을 확인
-    const { username } = req.cookies; 
-
-    if (username) {
-     
-        console.log(`[인증 성공] ${username}님, 환영합니다.`);
-        next(); 
-    } else {
-    
-        console.log('[인증 실패] 로그인이 필요합니다.');
-        res.status(401).send('<script>alert("로그인이 필요합니다!");location.href="/login";</script>');
-    }
-};
-
+// JWT 인증 미들웨어
+const isLogin = passport.authenticate('jwt', { session: false });
 
 app.get('/', (req, res) => {
     res.send(`
@@ -481,14 +497,16 @@ app.get('/login', (req, res) => {
     res.send('<h1>로그인 페이지</h1><p>로그인이 필요한 페이지에서 튕겨나오면 여기로 옵니다.</p>');
 });
 
-
 app.get('/mypage', isLogin, (req, res) => {
-    res.send(`
-        <h1>마이페이지</h1>
-        <p>환영합니다, ${req.cookies.username}님!</p>
-        <p>이 페이지는 로그인한 사람만 볼 수 있습니다.</p>
-    `);
+  res.status(200).json({
+    success: true,
+    message: `인증 성공! ${req.user.name}님의 마이페이지입니다.`,
+    data: {
+      user: req.user
+    }
+  });
 });
+
 
 
 app.get('/set-login', (req, res) => {
