@@ -918,7 +918,7 @@ export const getUserReviews = async (req, res, next) => {
  * @swagger
  * /api/v1/stores/{storeId}/missions:
  *   get:
- *     summary: Get all missions for a store
+ *     summary: 가게의 모든 미션 조회
  *     tags: [Missions]
  *     parameters:
  *       - in: path
@@ -926,11 +926,13 @@ export const getUserReviews = async (req, res, next) => {
  *         required: true
  *         schema:
  *           type: integer
+ *           minimum: 1
+ *         description: 미션을 조회할 가게의 고유 ID
  *     responses:
  *       200:
- *         description: List of store's missions
+ *         description: 가게의 미션 목록이 성공적으로 조회됨
  *       500:
- *         description: Internal server error
+ *         description: 서버 내부 오류 발생
  */
 /**
  * @swagger

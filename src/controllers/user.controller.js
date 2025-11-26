@@ -215,8 +215,8 @@ export const handleUserSignUp = async (req, res, next) => {
  * /api/v1/users/me:
  *   put:
  *     tags: [User]
- *     summary: Update user information
- *     description: Update the authenticated user's information
+ *     summary: 사용자 정보 수정
+ *     description: 인증된 사용자의 정보를 업데이트합니다.
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -228,45 +228,45 @@ export const handleUserSignUp = async (req, res, next) => {
  *             properties:
  *               name:
  *                 type: string
- *                 description: User's name
+ *                 description: 사용자 이름
  *               gender:
  *                 type: string
  *                 enum: [MALE, FEMALE, OTHER]
- *                 description: User's gender
+ *                 description: 사용자 성별
  *               birth:
  *                 type: string
  *                 format: date
- *                 description: User's birth date (YYYY-MM-DD)
+ *                 description: 사용자 생년월일 (YYYY-MM-DD 형식)
  *               address:
  *                 type: string
- *                 description: User's address
+ *                 description: 사용자 주소
  *               detailAddress:
  *                 type: string
- *                 description: User's detailed address
+ *                 description: 사용자 상세 주소
  *               phoneNumber:
  *                 type: string
- *                 description: User's phone number (without hyphens)
+ *                 description: 사용자 전화번호 (하이픈 없이 입력)
  *               preferences:
  *                 type: array
  *                 items:
  *                   type: string
  *                   enum: [한식, 일식, 중식, 양식, 치킨, 분식, 고기/구이, 도시락, 야식, 패스트푸드, 디저트, 아시안푸드]
- *                 description: User's food preferences
+ *                 description: 사용자 음식 선호도
  *     responses:
  *       200:
- *         description: User information updated successfully
+ *         description: 사용자 정보가 성공적으로 업데이트됨
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/User'
  *       400:
- *         description: Invalid input data
+ *         description: 잘못된 입력 데이터
  *       401:
- *         description: Unauthorized
+ *         description: 인증 실패
  *       404:
- *         description: User not found
+ *         description: 사용자를 찾을 수 없음
  *       500:
- *         description: Internal server error
+ *         description: 서버 내부 오류
  */
 export const updateMyProfile = async (req, res, next) => {
   try {
