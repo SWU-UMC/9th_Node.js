@@ -1,7 +1,7 @@
 import * as missionService from '../services/mission.service.js';
 import { StatusCodes } from 'http-status-codes';
 
-// Error handling with standard Error and status codes
+// 표준 Error와 상태 코드를 사용한 에러 처리
 class AppError extends Error {
   constructor(message, statusCode) {
     super(message);
@@ -343,10 +343,22 @@ export const handleAddMission = async (req, res, next) => {
  */
 export const getUserMissions = async (req, res, next) => {
     try {
-        const userId = parseInt(req.params.userId);
-        const missions = await missionService.getUserMissions(userId);
+        const userId = req.user.id; // Use authenticated user's ID
+        const { status } = req.query;
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
         
-        res.success(missions);
+        const result = await missionService.getUserMissions(userId, { status, page, limit });
+        
+        res.success({
+            data: result.missions,
+            pagination: {
+                totalItems: result.total,
+                totalPages: Math.ceil(result.total / limit),
+                currentPage: page,
+                itemsPerPage: limit
+            }
+        });
     } catch (error) {
         next(error);
     }
@@ -518,10 +530,17 @@ export const getUserMissions = async (req, res, next) => {
  */
 export const completeUserMission = async (req, res, next) => {
     try {
-        const { userId, missionId } = req.params;
-        const result = await missionService.completeMission(parseInt(userId), parseInt(missionId));
+        const userId = req.user.id; // Use authenticated user's ID
+        const { missionId } = req.params;
         
-        res.success(result, '미션이 성공적으로 완료되었습니다.');
+        const result = await missionService.completeMission(userId, parseInt(missionId));
+        
+        res.success({
+            id: result.id,
+            status: result.status,
+            completedAt: result.completedAt,
+            rewardEarned: result.rewardEarned
+        }, '미션이 성공적으로 완료되었습니다!');
     } catch (error) {
         next(error);
     }
@@ -708,7 +727,7 @@ export const completeUserMission = async (req, res, next) => {
  */
 export const assignMissionToUser = async (req, res, next) => {
     try {
-        const userId = parseInt(req.params.userId);
+        const userId = req.user.id; // Use authenticated user's ID
         const { missionId } = req.body;
 
         if (!missionId) {
@@ -875,10 +894,21 @@ export const assignMissionToUser = async (req, res, next) => {
  */
 export const getUserReviews = async (req, res, next) => {
   try {
-    const userId = parseInt(req.params.userId);
-    const reviews = await missionService.getUserReviews(userId);
+    const userId = req.user.id; // Use authenticated user's ID
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
     
-    res.success(reviews);
+    const result = await missionService.getUserReviews(userId, { page, limit });
+    
+    res.success({
+      data: result.reviews,
+      pagination: {
+        totalItems: result.total,
+        totalPages: Math.ceil(result.total / limit),
+        currentPage: page,
+        itemsPerPage: limit
+      }
+    });
   } catch (error) {
     next(error);
   }
