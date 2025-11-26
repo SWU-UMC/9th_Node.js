@@ -3,11 +3,11 @@ import * as reviewService from '../services/review.service.js';
 /**
  * POST /api/v1/stores/{storeId}/reviews 엔드포인트 핸들러
  */
-export const handleAddReview = async (req, res) => {
+export const addReview = async (req, res) => {
     // URL 경로에서 storeId 획득
     const storeId = parseInt(req.params.storeId); 
-    // 인증된 사용자 ID (현재는 ID 1로 가정)
-    const userId = 1; 
+    // 인증된 사용자 ID 사용
+    const userId = req.user.id;
     const { rating, content } = req.body;
 
     if (!rating || !content) {
