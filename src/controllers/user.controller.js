@@ -1,6 +1,6 @@
 import { StatusCodes } from 'http-status-codes';
 import { bodyToUser } from '../dtos/user.dto.js';
-import { userSignUp } from '../services/user.service.js';
+import { userSignUp, updateUser } from '../services/user.service.js';
 import { ValidationError } from '../errors.js';
 import { prisma } from '../db.config.js';
 
@@ -206,6 +206,88 @@ export const handleUserSignUp = async (req, res, next) => {
     const result = await userSignUp(user);
     res.success(result);
   } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @swagger
+ * /api/v1/users/me:
+ *   put:
+ *     tags: [User]
+ *     summary: Update user information
+ *     description: Update the authenticated user's information
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: User's name
+ *               gender:
+ *                 type: string
+ *                 enum: [MALE, FEMALE, OTHER]
+ *                 description: User's gender
+ *               birth:
+ *                 type: string
+ *                 format: date
+ *                 description: User's birth date (YYYY-MM-DD)
+ *               address:
+ *                 type: string
+ *                 description: User's address
+ *               detailAddress:
+ *                 type: string
+ *                 description: User's detailed address
+ *               phoneNumber:
+ *                 type: string
+ *                 description: User's phone number (without hyphens)
+ *               preferences:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   enum: [한식, 일식, 중식, 양식, 치킨, 분식, 고기/구이, 도시락, 야식, 패스트푸드, 디저트, 아시안푸드]
+ *                 description: User's food preferences
+ *     responses:
+ *       200:
+ *         description: User information updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *       400:
+ *         description: Invalid input data
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Internal server error
+ */
+export const updateMyProfile = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const updateData = req.body;
+
+    // Validate input data
+    if (!updateData || Object.keys(updateData).length === 0) {
+      throw new ValidationError('업데이트할 정보를 입력해주세요.');
+    }
+
+    // Update user information
+    const updatedUser = await updateUser(userId, updateData);
+    
+    res.status(StatusCodes.OK).json({
+      success: true,
+      message: '사용자 정보가 성공적으로 업데이트되었습니다.',
+      data: updatedUser
+    });
+  } catch (error) {
+    console.error('사용자 정보 업데이트 중 오류 발생:', error);
     next(error);
   }
 };

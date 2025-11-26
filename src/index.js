@@ -26,7 +26,7 @@ import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 
 // 컨트롤러 임포트
-import { signUp } from './controllers/user.controller.js';
+import { signUp, updateMyProfile } from './controllers/user.controller.js';
 import { 
   handleAddStore, 
   handleListStoreReviews, 
@@ -120,6 +120,7 @@ app.use((req, res, next) => {
 // 4. 라우트 설정
 // 사용자 관련 라우트
 app.post('/api/v1/users/signup', signUp);
+app.put('/api/v1/users/me', passport.authenticate('jwt', { session: false }), updateMyProfile);
 
 // 가게 관련 라우트
 app.get('/api/v1/stores/:storeId', getStoreById);
