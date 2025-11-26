@@ -962,7 +962,7 @@ export const getUserReviews = async (req, res, next) => {
  *                   type: string
  *                   example: "미션 목록 조회 중 오류가 발생했습니다."
  */
-export const getStoreMissions = async (req, res, next) => {
+export const getMissionsByStore = async (req, res, next) => {
     try {
         const storeId = parseInt(req.params.storeId);
         const missions = await missionService.getMissionsByStoreId(storeId);

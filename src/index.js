@@ -120,15 +120,20 @@ app.post('/api/v1/users/signup', signUp);
 // 가게 관련 라우트
 app.get('/api/v1/stores/:storeId', getStoreById);
 app.post('/api/v1/stores', handleAddStore);
+
+// 가게 리뷰 관련 라우트
 app.get('/api/v1/stores/:storeId/reviews', handleListStoreReviews);
-app.post('/api/v1/stores/:storeId/reviews', handleCreateStoreReview);
 
 // 미션 관련 라우트
 app.get('/api/v1/stores/:storeId/missions', getStoreMissions);
 app.get('/api/v1/users/:userId/missions', getUserMissions);
 app.patch('/api/v1/users/:userId/missions/:missionId/complete', completeUserMission);
 app.post('/api/v1/users/:userId/missions', assignMissionToUser);
+
+// 리뷰 관련 라우트
 app.get('/api/v1/users/:userId/reviews', getUserReviews);
+app.post('/api/v1/reviews', handleCreateStoreReview);
+app.post('/api/v1/stores/:storeId/reviews', handleCreateStoreReview);
 
 // 미션 도전 관련 라우트
 app.post('/api/v1/missions/:missionId/challenge', handleChallengeMission);
@@ -362,27 +367,6 @@ app.use((err, req, res, next) => {
   res.status(response.statusCode).json(response);
 });
 
-// 가게 관련 라우트
-app.get('/api/v1/stores/:storeId', getStoreById);
-app.post('/api/v1/stores', handleAddStore);
-app.get('/api/v1/stores/:storeId/reviews', handleListStoreReviews);
-app.post('/api/v1/stores/:storeId/reviews', handleCreateStoreReview);
-
-// 미션 관련 라우트
-app.get('/api/v1/stores/:storeId/missions', getStoreMissions);
-app.get('/api/v1/users/:userId/missions', getUserMissions);
-app.patch('/api/v1/users/:userId/missions/:missionId/complete', completeUserMission);
-app.post('/api/v1/users/:userId/missions', assignMissionToUser);
-app.get('/api/v1/users/:userId/reviews', getUserReviews);
-
-// 리뷰 관련 라우트
-app.post('/api/v1/reviews', handleCreateStoreReview);
-
-// 미션 도전 관련 라우트
-app.post('/api/v1/missions/:missionId/challenge', handleChallengeMission);
-
-// 미션 추가 (관리자용)
-app.post('/api/v1/missions', handleAddMission);
 
 // 서버 시작
 async function startServer() {

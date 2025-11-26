@@ -76,16 +76,10 @@ export const handleAddStore = async (req, res) => {
 
     try {
         const result = await storeService.addNewStore({ name, address, region });
-        return res.status(201).json(result); // 201 Created
+        return res.success(result, '가게가 성공적으로 등록되었습니다.', 201);
     } catch (error) {
-        if (error instanceof NotFoundError) {
-            throw error;
-        }
-        console.error('가게 추가 중 오류 발생:', error);
-        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ 
-            message: '가게 추가 중 오류가 발생했습니다.',
-            error: process.env.NODE_ENV === 'development' ? error.message : undefined
-        });
+        // 에러를 next로 전달하여 전역 에러 핸들러에서 처리하도록 함
+        next(error);
     }
 };
 
@@ -289,19 +283,14 @@ export const getStoreById = async (req, res, next) => {
   try {
     const store = await getStoreByIdService(req.params.storeId);
     if (!store) {
-      return res.status(StatusCodes.NOT_FOUND).json({
-        success: false,
-        message: '가게를 찾을 수 없습니다.'
-      });
+      const error = new Error('가게를 찾을 수 없습니다.');
+      error.statusCode = StatusCodes.NOT_FOUND;
+      throw error;
     }
     
-    res.status(StatusCodes.OK).json({
-      success: true,
-      data: store
-    });
+    return res.success(store);
   } catch (error) {
-    console.error('Error listing store reviews:', error);
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: '가게 리뷰 조회 중 오류가 발생했습니다.' });
+    next(error);
   }
 };
 

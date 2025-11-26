@@ -6,6 +6,54 @@ import { prisma } from '../db.config.js';
 
 /**
  * @swagger
+ * components:
+ *   schemas:
+ *     User:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           description: 사용자 고유 ID
+ *           example: 1
+ *         email:
+ *           type: string
+ *           format: email
+ *           description: 사용자 이메일
+ *           example: "user@example.com"
+ *         name:
+ *           type: string
+ *           description: 사용자 이름
+ *           example: "홍길동"
+ *         gender:
+ *           type: string
+ *           enum: [MALE, FEMALE, OTHER]
+ *           description: 성별
+ *           example: "MALE"
+ *         birth:
+ *           type: string
+ *           format: date
+ *           description: 생년월일 (YYYY-MM-DD)
+ *           example: "1990-01-01"
+ *         address:
+ *           type: string
+ *           description: 기본 주소
+ *           example: "서울특별시 강남구 테헤란로 123"
+ *         detailAddress:
+ *           type: string
+ *           description: 상세 주소
+ *           example: "101동 101호"
+ *         phoneNumber:
+ *           type: string
+ *           nullable: true
+ *           description: 휴대폰 번호 ('-' 제외)
+ *           example: "01012345678"
+ *         preferences:
+ *           type: array
+ *           description: 선호 카테고리 목록
+ *           items:
+ *             type: string
+ *           example: ["한식", "중식"]
+ *
  * /api/users/signup:
  *   post:
  *     summary: 사용자 회원가입
