@@ -4,6 +4,9 @@ import dotenv from "dotenv";
 import morgan from "morgan";          // 추가함.  -> m install morgan cookie-parser 실습
 import cookieParser from "cookie-parser";  // 추가
 
+// Swagger
+import swaggerUi from "swagger-ui-express";
+import swaggerSpec from "../swagger.js"; // ← src 바깥의 swagger.js 불러오기
 
 // .env 로드
 dotenv.config();
@@ -14,6 +17,7 @@ app.use(morgan("dev"));         // 요청 로그 콘솔 출력
 app.use(cookieParser());        // 쿠키 파싱
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 /*공용 응답 헬퍼 등록 -> 워크북 참고함. */
 app.use((req, res, next) => {
@@ -35,6 +39,8 @@ app.use((req, res, next) => {
   
     next();
   });
+
+  
 
 // 라우터 import
 import regionRouter from "./controllers/region.controller.js";

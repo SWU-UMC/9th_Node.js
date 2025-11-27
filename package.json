@@ -2,9 +2,8 @@
   "type": "module",
   "name": "playground-umc-9th-nodejs",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node src/index.js",
-    "dev": "nodemon -e js,json,prisma --exec \"prisma generate && node src/index.js\""
+    "dev": "nodemon src/index.js",
+    "start": "node src/index.js"
   },
   "dependencies": {
     "@prisma/client": "^6.18.0",
@@ -12,11 +11,29 @@
     "cookie-parser": "^1.4.7",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
+    "http-status-codes": "^2.3.0",
     "morgan": "^1.10.1",
     "mysql2": "^3.15.3",
-    "prisma": "^6.18.0"
+    "prisma": "^6.18.0",
+    "swagger-autogen": "^2.23.7",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"
-  }
+  },
+  "version": "1.0.0",
+  "description": "`제목`, `본문`, `꼬리말` 세 부분으로 나뉩니다.  \r 각 부분은 빈 줄로 구분되어야 합니다. `git commit` 입력 후 작성하면 됩니다.",
+  "main": "9th_Node.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SWU-UMC/9th_Node.js.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/SWU-UMC/9th_Node.js/issues"
+  },
+  "homepage": "https://github.com/SWU-UMC/9th_Node.js#readme"
 }
