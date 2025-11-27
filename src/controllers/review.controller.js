@@ -159,6 +159,14 @@ export const handleListMyReviews = async (req, res, next) => {
     #swagger.summary = '내 리뷰 목록 조회 API'
     #swagger.description = '현재 로그인된 사용자의 리뷰 목록을 조회'
 
+    #swagger.parameters['userId'] = {
+      in: 'query',
+      required: true,
+      description: '내 리뷰를 조회할 사용자 ID (임시: 인증 미구현으로 query 사용)',
+      schema: { type: 'number' },
+      example: 1
+    }
+      
     #swagger.parameters['cursor'] = {
       in: 'query',
       required: false,
@@ -220,6 +228,7 @@ export const handleListMyReviews = async (req, res, next) => {
         }
       }
     }
+
     #swagger.responses[404] = {
       description: "유저가 존재하지 않는 경우",
       content: {
@@ -250,7 +259,16 @@ export const handleListMyReviews = async (req, res, next) => {
     }
   */
   try {
-    const userIdFromAuth = null;
+    const rawUserId = req.query.userId;
+    const userIdFromAuth =
+      typeof rawUserId === "string" ? Number(rawUserId) : NaN;
+
+    if (!Number.isFinite(userIdFromAuth)) {
+      throw new ValidationError("userId는 숫자여야 합니다.", {
+        userId: rawUserId,
+      });
+    }
+
     const cursor =
       typeof req.query.cursor === "string" ? Number(req.query.cursor) : 0;
     const take =

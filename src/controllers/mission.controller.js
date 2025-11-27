@@ -269,7 +269,8 @@ export const handleChallengeMission = async (req, res, next) => {
     }
   */
   try {
-    const um = await challengeMission(Number(req.params.missionId));
+    const userId = req.user.id;
+    const um = await challengeMission(userId, Number(req.params.missionId));
     res.status(StatusCodes.CREATED).success(responseFromUserMission(um));
   } catch (err) {
     next(err);

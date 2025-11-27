@@ -12,7 +12,10 @@ import {
   handleCompleteUserMission,
   handleListUserMissions,
 } from "./controllers/mission.controller.js";
-import { handleUserSignUp } from "./controllers/user.controller.js";
+import {
+  handleUpdateMyProfile,
+  handleUserSignUp,
+} from "./controllers/user.controller.js";
 import {
   handleAddReview,
   handleListMyReviews,
@@ -23,8 +26,13 @@ import cookieParser from "cookie-parser";
 import swaggerAutogen from "swagger-autogen";
 import swaggerUiExpress from "swagger-ui-express";
 import { serialize } from "./utils/serialize.js";
+import { googleStrategy, jwtStrategy } from "./auth.config.js";
+import passport from "passport";
 
 dotenv.config();
+
+passport.use(googleStrategy);
+passport.use(jwtStrategy);
 
 const app = express();
 const port = process.env.PORT;
@@ -35,6 +43,8 @@ app.use(cors()); // cors 방식 허용
 app.use(express.static("public")); // 정적 파일 접근
 app.use(express.json()); // request의 본문을 json으로 해석할 수 있도록 함 (JSON 형태의 요청 body를 파싱하기 위함)
 app.use(express.urlencoded({ extended: false })); // 단순 객체 문자열 형태로 본문 데이터 해석
+
+app.use(passport.initialize());
 
 app.use(
   "/docs",
@@ -98,6 +108,41 @@ app.get("/test", (req, res) => {
   res.send("Hello!");
 });
 
+const isLogin = passport.authenticate("jwt", { session: false });
+
+app.get("/mypage", isLogin, (req, res) => {
+  res.status(200).success({
+    message: `인증 성공! ${req.user.name}님의 마이페이지입니다.`,
+    user: req.user,
+  });
+});
+
+app.get(
+  "/auth/google/login",
+  passport.authenticate("google", {
+    session: false,
+  })
+);
+app.get(
+  "/auth/google/callback",
+  passport.authenticate("google", {
+    session: false,
+    failureRedirect: "/login-failed",
+  }),
+  (req, res) => {
+    const tokens = req.user;
+
+    res.status(200).json({
+      resultType: "SUCCESS",
+      error: null,
+      success: {
+        message: "Google 로그인 성공!",
+        tokens: tokens, // { "accessToken": "...", "refreshToken": "..." }
+      },
+    });
+  }
+);
+
 // 쿠키 만드는 라우터
 app.get("/setcookie", (req, res) => {
   // #swagger.ignore = true
@@ -124,22 +169,22 @@ app.get("/getcookie", (req, res) => {
 app.post("/api/user/signup", handleUserSignUp);
 
 // 지역에 가게 추가
-app.post("/api/stores", handleCreateStore);
+app.post("/api/stores", isLogin, handleCreateStore);
 
 // 가게에 리뷰 추가
-app.post("/api/stores/:storeId/reviews", handleAddReview);
+app.post("/api/stores/:storeId/reviews", isLogin, handleAddReview);
 
 // 가게에 미션 추가
-app.post("/api/stores/:storeId/missions", handleAddMission);
+app.post("/api/stores/:storeId/missions", isLogin, handleAddMission);
 
 // 미션 도전하기
-app.post("/api/missions/:missionId/challenge", handleChallengeMission);
+app.post("/api/missions/:missionId/challenge", isLogin, handleChallengeMission);
 
 // 리뷰 목록 조회
 app.get("/api/stores/:storeId/reviews", handleListStoreReviews);
 
 // 내 리뷰 목록 조회
-app.get("/api/me/reviews", handleListMyReviews);
+app.get("/api/me/reviews", isLogin, handleListMyReviews);
 
 // 특정 유저 리뷰 목록 조회
 app.get("/api/users/:userId/reviews", handleListUserReviews);
@@ -148,13 +193,17 @@ app.get("/api/users/:userId/reviews", handleListUserReviews);
 app.get("/api/stores/:storeId/missions", handleListStoreMissions);
 
 // 내가 진행 중인 미션 목록 조회
-app.get("/api/users/:userId/missions", handleListUserMissions);
+app.get("/api/users/:userId/missions", isLogin, handleListUserMissions);
 
 // 진행 중 미션 완료 처리
 app.patch(
   "/api/users/:userId/missions/:missionId/complete",
+  isLogin,
   handleCompleteUserMission
 );
+
+// 내 정보 수정
+app.patch("/api/me/profile", isLogin, handleUpdateMyProfile);
 
 // 에러 핸들러
 app.use((err, req, res, next) => {
