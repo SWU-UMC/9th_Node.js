@@ -16,7 +16,9 @@ export const handleChallengeMission = async (req, res, next) => {
     #swagger.parameters['mission_id'] = {
       in: 'path',
       required: true,
-      type: 'integer',
+      schema: {
+        type: 'integer'
+      },
       description: '도전할 미션 ID'
     }
 
@@ -25,7 +27,14 @@ export const handleChallengeMission = async (req, res, next) => {
       content: {
         "application/json": {
           schema: {
-            $user_id: 1
+            type: "object",
+            properties: {
+              user_id: { type: "integer" }
+            },
+            required: ["user_id"],
+            example: {
+              user_id: 1
+            }
           }
         }
       }
@@ -118,7 +127,9 @@ export const handleListActiveMissions = async (req, res, next) => {
     #swagger.parameters['user_id'] = {
       in: 'path',
       required: true,
-      type: 'integer',
+      schema: {
+        type: 'integer'
+      },
       description: '사용자 ID'
     }
 
@@ -199,7 +210,9 @@ export const handleCompleteMission = async (req, res, next) => {
     #swagger.parameters['user_mission_id'] = {
       in: 'path',
       required: true,
-      type: 'integer',
+      schema: {
+        type: 'integer'
+      },
       description: '사용자 미션(user_missions)의 ID'
     }
 

@@ -5,18 +5,27 @@ import bcrypt from "bcrypt";
 
 export const handleUserSignUp = async (req, res, next) => {
   /*
-  #swagger.tags = ['Users']
-  #swagger.summary = '회원가입'
-  #swagger.description = '이메일, 비밀번호, 닉네임으로 회원을 등록합니다.'
+    #swagger.tags = ['Users']
+    #swagger.summary = '회원가입'
+    #swagger.description = '이메일, 비밀번호, 닉네임으로 회원을 등록합니다.'
 
-  #swagger.requestBody = {
-    required: true,
-    content: {
-      "application/json": {
-        schema:{
-          $email: "test@example.com",
-          $password: "qwer1234!",
-          $name: "워니"
+    #swagger.requestBody = {
+      required: true,
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              email: { type: "string", format: "email" },
+              password: { type: "string" },
+              name: { type: "string" }
+            },
+            required: ["email", "password", "name"],
+            example: {
+              email: "test@example.com",
+              password: "qwer1234!",
+              name: "워니"
+            }
           }
         }
       }
