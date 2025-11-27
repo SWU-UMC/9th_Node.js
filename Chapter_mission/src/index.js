@@ -18,15 +18,8 @@ import {
 } from "./controllers/userMission.controller.js";
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
-import passport from "passport";
-import { googleStrategy, jwtStrategy } from "./auth.config.js";
-import authRouter from "./routes/auth.routes.js";
-import { prisma } from "./db.config.js";
 
 dotenv.config();
-
-passport.use(googleStrategy);
-passport.use(jwtStrategy);
 
 const app = express();
 const port = process.env.PORT;
@@ -51,9 +44,6 @@ app.use(express.json());                    // request의 본문을 json으로 �
 app.use(express.urlencoded({ extended: false })); // 단순 객체 문자열 형태로 본문 데이터 해석
 app.use(morgan('dev'));
 app.use(cookieParser());
-
-// passport 초기화
-app.use(passport.initialize());
 
 app.get("/", (req, res) => {
   res.send("Hello World!");
@@ -161,29 +151,12 @@ app.get("/openapi.json", async (req, res, next) => {
 });
 
 /**
- * OAuth / 인증 라우터 등록
- */
-app.use("/", authRouter);
-
-// JWT 로그인 확인 미들웨어
-const isLogin = passport.authenticate('jwt', { session: false });
-
-// 마이페이지 라우트
-app.get('/mypage', isLogin, (req, res) => {
-  res.status(200).success({
-    message: `인증 성공! ${req.user.name}님의 마이페이지입니다.`,
-    user: req.user,
-  });
-});
-
-/**
  * 라우터 설정
  */
 // 사용자
 app.post("/api/v1/users/signup", handleUserSignUp);
 app.get("/api/v1/users/:user_id/reviews", handleListUserReviews);
 app.get("/api/v1/users/:user_id/missions", handleListActiveMissions);
-
 
 // 지역 및 가게
 app.post("/api/v1/regions/:region_id/stores", handleAddStore);
