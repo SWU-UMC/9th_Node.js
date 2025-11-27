@@ -22,10 +22,20 @@ export const handleAddMission = async (req, res, next) => {
       content: {
         "application/json": {
           schema: {
-            $title: "인증샷과 함께 리뷰 남기기",
-            description: "가게에서 음식 사진과 함께 리뷰를 작성하면 포인트 지급",
-            point: 100,
-            deadline: "2025-12-31T23:59:59.000Z"
+            type: "object",
+            properties: {
+              title: { type: "string" },
+              description: { type: "string" },
+              point: { type: "integer" },
+              deadline: { type: "string", format: "date-time" }
+            },
+            required: ["title", "description", "point"],
+            example: {
+              title: "인증샷과 함께 리뷰 남기기",
+              description: "가게에서 음식 사진과 함께 리뷰를 작성하면 포인트 지급",
+              point: 100,
+              deadline: "2025-12-31T23:59:59.000Z"
+            }
           }
         }
       }
@@ -141,7 +151,9 @@ export const handleListMissionsByStore = async (req, res, next) => {
     #swagger.parameters['store_id'] = {
       in: 'path',
       required: true,
-      type: 'integer',
+      schema: {
+        type: 'integer'
+      },
       description: '미션을 조회할 가게의 ID'
     }
 

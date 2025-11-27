@@ -36,3 +36,15 @@ export const userSignUp = async (data) => {
   // DTO로 변환 후 반환
   return responseFromUser(createdUser);
 };
+
+
+export const updateUserProfile = async (userId, updateData) => {
+  const id = Number(userId);
+
+  const user = await prisma.user.update({
+    where: { id },
+    data: updateData,
+  });
+
+  return user;
+};

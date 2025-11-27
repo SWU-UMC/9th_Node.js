@@ -13,7 +13,9 @@ export const handleAddStore = async (req, res, next) => {
     #swagger.parameters['region_id'] = {
       in: 'path',
       required: true,
-      type: 'integer',
+      schema: {
+        type: 'integer'
+      },
       description: '가게가 속한 지역의 ID'
     }
 
@@ -22,10 +24,20 @@ export const handleAddStore = async (req, res, next) => {
       content: {
         "application/json": {
           schema: {
-            $categoryId: 4,
-            $name: "홍대 떡볶이",
-            address: "서울 마포구 홍익로 10",
-            description: "매운맛이 매력적인 분식집"
+            type: "object",
+            properties: {
+              categoryId: { type: "integer" },
+              name: { type: "string" },
+              address: { type: "string" },
+              description: { type: "string" }
+            },
+            required: ["categoryId", "name"],
+            example: {
+              categoryId: 4,
+              name: "홍대 떡볶이",
+              address: "서울 마포구 홍익로 10",
+              description: "매운맛이 매력적인 분식집"
+            }
           }
         }
       }

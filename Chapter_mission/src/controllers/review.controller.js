@@ -13,7 +13,9 @@ export const handleAddReview = async (req, res, next) => {
     #swagger.parameters['store_id'] = {
       in: 'path',
       required: true,
-      type: 'integer',
+      schema: {
+        type: 'integer'
+      },
       description: '리뷰를 등록할 가게의 ID'
     }
 
@@ -22,10 +24,20 @@ export const handleAddReview = async (req, res, next) => {
       content: {
         "application/json": {
           schema: {
-            $userMissionId: 10,
-            $body: "정말 맛있어요!! 또 올게요.",
-            $score: 5,
-            imageCount: 1
+            type: "object",
+            properties: {
+              userMissionId: { type: "integer" },
+              body: { type: "string" },
+              score: { type: "integer" },
+              imageCount: { type: "integer" }
+            },
+            required: ["userMissionId", "body", "score"],
+            example: {
+              userMissionId: 10,
+              body: "정말 맛있어요!! 또 올게요.",
+              score: 5,
+              imageCount: 1
+            }
           }
         }
       }
@@ -177,14 +189,18 @@ export const handleListStoreReviews = async (req, res, next) => {
     #swagger.parameters['store_id'] = {
       in: 'path',
       required: true,
-      type: 'integer',
+      schema: {
+        type: 'integer'
+      },
       description: '리뷰를 조회할 가게의 ID'
     }
 
     #swagger.parameters['cursor'] = {
       in: 'query',
       required: false,
-      type: 'integer',
+      schema: {
+        type: 'integer'
+      },
       description: '마지막으로 조회한 리뷰 ID (cursor 기반 페이징)'
     }
 
@@ -289,14 +305,18 @@ export const handleListUserReviews = async (req, res, next) => {
     #swagger.parameters['user_id'] = {
       in: 'path',
       required: true,
-      type: 'integer',
+      schema: {
+        type: 'integer'
+      },
       description: '리뷰를 조회할 사용자 ID'
     }
 
     #swagger.parameters['cursor'] = {
       in: 'query',
       required: false,
-      type: 'integer',
+      schema: {
+        type: 'integer'
+      },
       description: '마지막으로 조회한 리뷰 ID (cursor 기반 페이징)'
     }
 

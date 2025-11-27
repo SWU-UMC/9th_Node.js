@@ -4,7 +4,10 @@ import cors from "cors";
 import swaggerAutogen from "swagger-autogen";
 import swaggerUiExpress from "swagger-ui-express";
 
-import { handleUserSignUp } from "./controllers/user.controller.js";
+import { authMiddleware } from "./middlewares/auth.middleware.js";
+
+import { handleUserSignUp,
+        handleUpdateMe } from "./controllers/user.controller.js";
 import { handleAddStore } from "./controllers/store.controller.js";
 import { handleAddReview,
         handleListUserReviews,
@@ -155,22 +158,24 @@ app.get("/openapi.json", async (req, res, next) => {
  */
 // 사용자
 app.post("/api/v1/users/signup", handleUserSignUp);
+app.patch("/api/v1/users/me", authMiddleware, handleUpdateMe);
 app.get("/api/v1/users/:user_id/reviews", handleListUserReviews);
 app.get("/api/v1/users/:user_id/missions", handleListActiveMissions);
 
 // 지역 및 가게
-app.post("/api/v1/regions/:region_id/stores", handleAddStore);
+app.post("/api/v1/regions/:region_id/stores", authMiddleware, handleAddStore);
 app.get("/api/v1/stores/:store_id/missions", handleListMissionsByStore);
 
 // 리뷰
-app.post("/api/v1/stores/:store_id/reviews", handleAddReview);
+app.post("/api/v1/stores/:store_id/reviews", authMiddleware, handleAddReview);
 app.get("/api/v1/stores/:store_id/reviews", handleListStoreReviews);
 
 // 미션
-app.post("/api/v1/stores/:store_id/missions", handleAddMission);
-app.post("/api/v1/missions/:mission_id/challenges", handleChallengeMission);
+app.post("/api/v1/stores/:store_id/missions", authMiddleware, handleAddMission);
+app.post("/api/v1/missions/:mission_id/challenges", authMiddleware, handleChallengeMission);
 app.patch(
   "/api/v1/user-missions/:user_mission_id/complete",
+  authMiddleware,
   handleCompleteMission
 );
 
