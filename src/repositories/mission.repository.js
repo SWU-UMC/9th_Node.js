@@ -78,10 +78,44 @@ export const addUserMission = async (data) => {
     throw new InternalServerError(`DB 오류가 발생했습니다: ${err.message}`);
   }
 };
-// ID로 user_mission 정보 조회 (방금 추가한 '도전' 확인용)
+// ID로 user_mission 정보 조회
 export const getUserMissionById = async (userMissionId) => {
-  const userMission = await prisma.user_mission.findUnique({
-    where: { id: userMissionId },
-  });
-  return userMission;
+  try {
+    const userMission = await prisma.userMission.findUnique({
+      where: { id: userMissionId },
+        include: {
+          mission: true, // 포인트 정보를 알기 위해
+          user: true,    // 유저 정보를 알기 위해
+        },
+    });
+    return userMission;
+  } catch (err) {
+    console.error(err);
+    throw new InternalServerError(`DB 오류가 발생했습니다: ${err.message}`);
+  }
+};
+
+// 미션 완료 처리
+export const completeUserMission = async (userMissionId, userId, points) => {
+  try {
+    const result = await prisma.$transaction(async (tx) => {
+      // 미션 상태를 '진행 완료'로 변경
+      const updateMission = await tx.userMission.update({
+        where: { id: userMissionId },
+        data: { status: '진행 완료' },
+      });
+
+      // 유저 포인트 증가
+      await tx.user.update({
+        where: { id: userId },
+        data: { point: { increment: points }, },
+      }); 
+
+      return updateMission;
+    });
+    return result;
+  } catch (err) {
+    console.error(err);
+    throw new InternalServerError(`DB 오류가 발생했습니다: ${err.message}`);
+  } 
 };

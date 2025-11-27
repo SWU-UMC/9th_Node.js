@@ -22,7 +22,7 @@ export class RestaurantNotFoundError extends Error {
 
 // 존재하지 않는 미션
 export class MissionNotFoundError extends Error {
-  errorCode = "M002";
+  errorCode = "M001";
 
   constructor(reason, data) {
     super(reason);
@@ -31,6 +31,17 @@ export class MissionNotFoundError extends Error {
   }
 }
 
+// 존재하지 않는 유저 미션
+export class MissionUserNotFoundError extends Error {
+  errorCode = "M002";
+  constructor(reason, data) {
+    super(reason);
+    this.reason = reason;
+    this.data = data;
+  }
+
+
+}
 
 // 존재하지 않는 유저
 export class UserNotFoundError extends Error {
@@ -58,8 +69,18 @@ export class InternalServerError extends Error {
 
 // 이미 도전중인 미션
 export class MissionAlreadyChallengedError extends Error {
-  errorCode = "M004";
+  errorCode = "M003";
 
+  constructor(reason, data) {
+    super(reason);
+    this.reason = reason;
+    this.data = data;
+  }
+}
+
+// 이미 완료한 미션
+export class MissionAlreadyCompletedError extends Error {
+  errorCode = "M004";
   constructor(reason, data) {
     super(reason);
     this.reason = reason;
