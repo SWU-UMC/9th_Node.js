@@ -1,6 +1,7 @@
 // src/controllers/region.controller.js
 import express from "express";
 import { prisma } from "../db.config.js";
+import { isLogin } from "../middlewares/auth.middleware.js";
 import { findRegionById, createRestaurant } from "../repositories/region.repository.js" ;
 import { RegionNotFoundError, RestaurantCreationError } from "../errors.js"; // 에러 추가
 
@@ -75,7 +76,7 @@ const router = express.Router();
  *               success: false
  *               message: 지역이 존재하지 않습니다.
  */
-router.post("/region/:regionId/restaurant", async (req, res, next) => {
+router.post("/region/:regionId/restaurant", isLogin, async (req, res, next) => { //가게 추가는 로그인한 사용자만 등록해야함!!
   const { regionId } = req.params;
   const data = req.body;
 

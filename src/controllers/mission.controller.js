@@ -1,5 +1,6 @@
 // src/controllers/mission.controller.js
 import express from "express";
+import { isLogin } from "../middlewares/auth.middleware.js";
 
 import {
   findRestaurantById,
@@ -122,7 +123,7 @@ const router = express.Router();
  *                   example: null
  */
 
-router.post("/restaurant/:id/mission", async (req, res) => {
+router.post("/restaurant/:id/mission",isLogin, async (req, res) => { //미션 생성은 로그인 필수!
   const { id } = req.params;
   const data = req.body;
 
