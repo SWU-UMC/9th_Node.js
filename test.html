@@ -1,0 +1,90 @@
+<!--
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>내 API 테스트하기</title>
+</head>
+<body>
+    <h1>회원가입 테스트</h1>
+    <button id="signupButton">가입 요청 (성공)</button>
+    <button id="signupButtonFail">가입 요청 (실패 - 이메일 중복)</button>
+
+    <script>
+       
+        const API_URL = 'http://localhost:3000';
+
+        // 성공 테스트 
+        document.getElementById('signupButton').onclick = async () => {
+            const userData = {
+                email: `test_${Date.now()}@test.com`,
+                name: "UMC",
+                gender: "여성",
+                birth: "2000-01-01",
+                address: "서울시",
+                detailAddress: "UMC구 챌린저동 화이팅아파트",
+                phoneNumber: "010-1234-5678",
+                preferences: [1]
+            };
+            
+            await callAPI('/api/v1/users/signup', userData);
+        };
+
+        // 2. 실패 테스트 (이메일 중복)
+        document.getElementById('signupButtonFail').onclick = async () => {
+            const userData = {
+                email: "test@example.com", // 이미 가입된 이메일 사용
+                name: "UMC",
+                gender: "여성",
+                birth: "2000-01-01", 
+                address: "서울시",
+                detailAddress: "UMC구 챌린저동 화이팅아파트",
+                phoneNumber: "010-1234-5678",
+                preferences: [1]
+            };
+            
+            await callAPI('/api/v1/users/signup', userData);
+        };
+
+        // 3. API 호출 함수
+        async function callAPI(path, data) {
+            console.log(`%c[요청] ${path}`, 'color: blue;', data);
+            
+            try {
+                const response = await fetch(API_URL + path, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(data),
+                    credentials: 'include' // 쿠키를 포함한 요청
+                });
+
+                const responseData = await response.json();
+
+                if (!response.ok) {
+                    // 서버에서 반환한 에러 메시지 표시
+                    alert(`에러 발생: ${responseData.message || '알 수 없는 오류가 발생했습니다.'}`);
+                    throw responseData;
+                }
+
+                console.log('%c[응답] 성공:', 'color: green;', responseData);
+                alert('성공적으로 처리되었습니다!');
+                return responseData;
+
+            } catch (error) {
+                console.error('%c[응답] 실패:', 'color: red;', error);
+                // 에러 메시지를 사용자에게 표시
+                const errorMessage = error.message || '요청 처리 중 오류가 발생했습니다.';
+                alert(`오류: ${errorMessage}`);
+                
+                // 상세 에러 정보가 있는 경우 콘솔에 출력
+                if (error.details) {
+                    console.error('상세 에러 정보:', error.details);
+                }
+            }
+        }
+    </script>
+</body>
+</html>-->

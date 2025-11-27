@@ -3,6 +3,8 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import swaggerJsdoc from 'swagger-jsdoc';
+import swaggerUiExpress from "swagger-ui-express";
 
 // Get the current directory name in ES module
 const __filename = fileURLToPath(import.meta.url);
@@ -72,7 +74,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:3000',
+  origin: [
+    process.env.CLIENT_URL || 'http://localhost:3000',
+    'http://127.0.0.1:5500'
+  ],
   credentials: true
 }));
 app.use(express.static('public')); // 정적 파일 제공
@@ -183,7 +188,67 @@ app.get('/', (req, res) => {
 const apiRouter = express.Router();
 
 // 사용자 관련 라우트
-apiRouter.post("/users/signup", signUp);
+apiRouter.post("/users/signup", async (req, res, next) => {
+  try {
+    await signUp(req, res, next);
+  } catch (error) {
+    next(error);
+  }
+});
+
+
+// Swagger 설정
+const options = {
+  definition: {
+    openapi: "3.0.0",
+    info: {
+      title: "UMC 9th API",
+      version: "1.0.0",
+      description: "UMC 9th Node.js 테스트 프로젝트 API 문서입니다."
+    },
+    servers: [
+      {
+        url: "http://localhost:3000/api/v1",
+        description: "Local server"
+      }
+    ],
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT"
+        }
+      }
+    },
+    security: [
+      {
+        bearerAuth: []
+      }
+    ]
+  },
+  apis: ["./src/**/*.js"]
+};
+
+const swaggerSpec = swaggerJsdoc(options);
+
+// Swagger UI
+app.use(
+  "/docs",
+  swaggerUiExpress.serve,
+  swaggerUiExpress.setup(swaggerSpec, {
+    explorer: true,
+    customCss: '.swagger-ui .topbar { display: none }',
+    customSiteTitle: "UMC 9th API 문서"
+  })
+);
+
+// OpenAPI JSON - Swagger UI에서 숨김
+app.get("/openapi.json", (req, res) => {
+  // #swagger.ignore = true
+  res.setHeader("Content-Type", "application/json");
+  res.send(swaggerSpec);
+});
 
 // 가게 관련 라우트
 apiRouter.get('/stores/:storeId', getStoreById);
@@ -198,6 +263,13 @@ apiRouter.post('/missions/:missionId/challenge', handleChallengeMission);
 
 // API 버저닝
 app.use('/api/v1', apiRouter);
+
+// Swagger 문서에서 숨길 라우트
+app.get('/openapi.json', (req, res) => {
+  // #swagger.ignore = true
+  res.setHeader("Content-Type", "application/json");
+  res.send(swaggerSpec);
+});
 
 // Global error handler middleware
 app.use((err, req, res, next) => {
