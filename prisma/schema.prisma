@@ -24,6 +24,7 @@ model User {
   provider     String?      @db.VarChar(50)
   providerId   String?      @map("provider_id") @db.VarChar(100)
   preferences  UserPrefer[]
+  reviews Review[]
 
   @@map("user")
 }
@@ -75,6 +76,7 @@ model Review {
   body      String?  @db.Text
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
+  user      User     @relation(fields: [userId], references: [id])
   store     Store    @relation(fields: [storeId], references: [id])
 
   @@index([storeId], map: "review_store_id_fkey")

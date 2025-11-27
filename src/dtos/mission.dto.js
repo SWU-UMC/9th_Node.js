@@ -34,8 +34,8 @@ export const bodyToMission = (body, storeIdFromPath) => {
 };
 
 export const responseFromMission = (m) => ({
-  id: m.id,
-  storeId: m.storeId,
+  id: Number(m.id),
+  storeId: Number(m.storeId),
   reward: m.reward,
   deadline: m.deadline,
   missionSpec: m.missionSpec,
@@ -44,8 +44,8 @@ export const responseFromMission = (m) => ({
 });
 
 export const responseFromUserMission = (um) => ({
-  userId: um.userId,
-  missionId: um.missionId,
+  userId: Number(um.userId),
+  missionId: Number(um.missionId),
   status: um.status,
   startedAt: um.startedAt,
   completedAt: um.completedAt ?? null,
