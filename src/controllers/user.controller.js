@@ -1,6 +1,6 @@
 import { StatusCodes } from "http-status-codes";
 import { bodyToUser } from "../dtos/user.dto.js";
-import { userSignUp } from "../services/user.service.js";
+import { updateMyProfile, userSignUp } from "../services/user.service.js";
 
 export const handleUserSignUp = async (req, res, next) => {
   /*
@@ -123,6 +123,22 @@ export const handleUserSignUp = async (req, res, next) => {
 
     const user = await userSignUp(dto);
     res.status(StatusCodes.OK).success(user);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const handleUpdateMyProfile = async (req, res, next) => {
+  /*
+    #swagger.tags = ['User']
+    #swagger.summary = '내 프로필 수정 API'
+    #swagger.description = '로그인한 사용자의 기본 정보를 수정합니다.'
+  */
+  try {
+    const userId = req.user.id;
+    const updated = await updateMyProfile(userId, req.body);
+
+    res.status(StatusCodes.OK).success(updated);
   } catch (err) {
     next(err);
   }
