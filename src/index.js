@@ -5,12 +5,15 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import swaggerJsdoc from 'swagger-jsdoc';
 import swaggerUiExpress from "swagger-ui-express";
+import passport from "passport";
+import { googleStrategy, jwtStrategy } from "./auth.config.js";
+import { prisma } from "./db.config.js";
 
-// Get the current directory name in ES module
+// ES 모듈에서 현재 디렉토리 이름 가져오기
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Load .env file from the root directory
+// 루트 디렉토리에서 .env 파일 로드
 const envPath = path.resolve(__dirname, '../../.env');
 try {
   dotenv.config({ path: envPath });
@@ -21,10 +24,12 @@ try {
 
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
-import { prisma } from './db.config.js';
+
+// 미들웨어 임포트
+import { authenticateJWT, requireAdmin } from './auth.config.js';
 
 // 컨트롤러 임포트
-import { signUp } from './controllers/user.controller.js';
+import { signUp, updateMyProfile } from './controllers/user.controller.js';
 import { 
   handleAddStore, 
   handleListStoreReviews, 
@@ -43,8 +48,9 @@ import {
   handleChallengeMission
 } from './controllers/mission.controller.js';
 
-// .env 파일 로드
-dotenv.config();
+// Passport 설정
+passport.use(googleStrategy);
+passport.use(jwtStrategy);
 
 // Prisma 클라이언트 연결 확인
 async function checkDatabaseConnection() {
@@ -71,7 +77,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 // 기본 미들웨어 설정
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: false })); // 원래 true였음
 app.use(cookieParser());
 app.use(cors({
   origin: [
@@ -81,6 +87,7 @@ app.use(cors({
   credentials: true
 }));
 app.use(express.static('public')); // 정적 파일 제공
+app.use(passport.initialize());
 
 // 성공/에러 응답 메서드 추가
 app.use((req, res, next) => {
@@ -116,25 +123,31 @@ app.use((req, res, next) => {
 // 4. 라우트 설정
 // 사용자 관련 라우트
 app.post('/api/v1/users/signup', signUp);
+app.put('/api/v1/users/me', authenticateJWT, updateMyProfile);
 
 // 가게 관련 라우트
 app.get('/api/v1/stores/:storeId', getStoreById);
-app.post('/api/v1/stores', handleAddStore);
+app.post('/api/v1/stores', authenticateJWT, handleAddStore);
+
+// 가게 리뷰 관련 라우트
 app.get('/api/v1/stores/:storeId/reviews', handleListStoreReviews);
-app.post('/api/v1/stores/:storeId/reviews', handleCreateStoreReview);
 
 // 미션 관련 라우트
 app.get('/api/v1/stores/:storeId/missions', getStoreMissions);
-app.get('/api/v1/users/:userId/missions', getUserMissions);
-app.patch('/api/v1/users/:userId/missions/:missionId/complete', completeUserMission);
-app.post('/api/v1/users/:userId/missions', assignMissionToUser);
-app.get('/api/v1/users/:userId/reviews', getUserReviews);
+app.get('/api/v1/users/:userId/missions', authenticateJWT, getUserMissions);
+app.patch('/api/v1/users/:userId/missions/:missionId/complete', authenticateJWT, completeUserMission);
+app.post('/api/v1/users/:userId/missions', authenticateJWT, assignMissionToUser);
+
+// 리뷰 관련 라우트
+app.get('/api/v1/users/:userId/reviews', authenticateJWT, getUserReviews);
+app.post('/api/v1/reviews', authenticateJWT, handleCreateStoreReview);
+app.post('/api/v1/stores/:storeId/reviews', authenticateJWT, handleCreateStoreReview);
 
 // 미션 도전 관련 라우트
-app.post('/api/v1/missions/:missionId/challenge', handleChallengeMission);
+app.post('/api/v1/missions/:missionId/challenge', authenticateJWT, handleChallengeMission);
 
 // 미션 추가 (관리자용)
-app.post('/api/v1/missions', handleAddMission);
+app.post('/api/v1/missions', authenticateJWT, requireAdmin, handleAddMission);
 
 // API 상태 확인을 위한 엔드포인트
 app.get('/api/health', (req, res) => {
@@ -230,6 +243,34 @@ const options = {
   apis: ["./src/**/*.js"]
 };
 
+
+/* 9주차실습시작 */
+app.get("/oauth2/login/google", 
+  passport.authenticate("google", { 
+    session: false 
+  })
+);
+app.get(
+  "/oauth2/callback/google",
+  passport.authenticate("google", {
+	  session: false,
+    failureRedirect: "/login-failed",
+  }),
+  (req, res) => {
+    const tokens = req.user; 
+
+    res.status(200).json({
+      resultType: "SUCCESS",
+      error: null,
+      success: {
+          message: "Google 로그인 성공!",
+          tokens: tokens, // { "accessToken": "...", "refreshToken": "..." }
+      }
+    });
+  }
+);
+/* 9주차실습끝 */
+
 const swaggerSpec = swaggerJsdoc(options);
 
 // Swagger UI
@@ -271,16 +312,16 @@ app.get('/openapi.json', (req, res) => {
   res.send(swaggerSpec);
 });
 
-// Global error handler middleware
+// 전역 에러 핸들링 미들웨어
 app.use((err, req, res, next) => {
   console.error('Error:', err);
   
-  // If headers are already sent, delegate to the default Express error handler
+  // 헤더가 이미 전송된 경우 기본 Express 에러 핸들러에 위임
   if (res.headersSent) {
     return next(err);
   }
 
-  // Default error response
+  // 기본 에러 응답
   const statusCode = err.statusCode || 500;
   const response = {
     success: false,
@@ -296,9 +337,9 @@ app.use((err, req, res, next) => {
     timestamp: new Date().toISOString()
   };
 
-  // Handle specific error types
+  // 특정 에러 유형 처리
   switch (true) {
-    // Validation errors (400)
+    // 유효성 검사 에러 (400)
     case err.name === 'ValidationError':
     case statusCode === 400:
       response.error.code = 'VALIDATION_ERROR';
@@ -314,7 +355,7 @@ app.use((err, req, res, next) => {
       response.statusCode = 404;
       break;
       
-    // Authentication errors (401)
+    // 인증 에러 (401)
     case err.name === 'UnauthorizedError':
     case statusCode === 401:
       response.error.code = 'UNAUTHORIZED';
@@ -322,7 +363,7 @@ app.use((err, req, res, next) => {
       response.statusCode = 401;
       break;
       
-    // Forbidden errors (403)
+    // 접근 거부 에러 (403)
     case err.name === 'ForbiddenError':
     case statusCode === 403:
       response.error.code = 'FORBIDDEN';
@@ -330,7 +371,7 @@ app.use((err, req, res, next) => {
       response.statusCode = 403;
       break;
       
-    // Conflict errors (409)
+    // 충돌 에러 (409)
     case err.name === 'ConflictError':
     case statusCode === 409:
       response.error.code = 'CONFLICT';
@@ -338,51 +379,30 @@ app.use((err, req, res, next) => {
       response.statusCode = 409;
       break;
       
-    // Rate limiting (429)
+    // 요청 한도 초과 (429)
     case err.name === 'RateLimitError':
       response.error.code = 'RATE_LIMIT_EXCEEDED';
       response.error.message = err.message || '요청 한도를 초과했습니다. 잠시 후 다시 시도해주세요.';
       response.statusCode = 429;
       break;
       
-    // Default to 500 for unhandled errors
+    // 처리되지 않은 에러는 기본적으로 500 에러로 처리
     default:
       response.statusCode = 500;
       response.error.code = 'INTERNAL_SERVER_ERROR';
       response.error.message = '서버에서 오류가 발생했습니다.';
       
-      // Don't leak error details in production
+      // 프로덕션 환경에서는 에러 상세 정보 노출 방지
       if (process.env.NODE_ENV !== 'development') {
         delete response.error.stack;
         delete response.error.name;
       }
   }
 
-  // Send the error response
+  // 에러 응답 전송
   res.status(response.statusCode).json(response);
 });
 
-// 가게 관련 라우트
-app.get('/api/v1/stores/:storeId', getStoreById);
-app.post('/api/v1/stores', handleAddStore);
-app.get('/api/v1/stores/:storeId/reviews', handleListStoreReviews);
-app.post('/api/v1/stores/:storeId/reviews', handleCreateStoreReview);
-
-// 미션 관련 라우트
-app.get('/api/v1/stores/:storeId/missions', getStoreMissions);
-app.get('/api/v1/users/:userId/missions', getUserMissions);
-app.patch('/api/v1/users/:userId/missions/:missionId/complete', completeUserMission);
-app.post('/api/v1/users/:userId/missions', assignMissionToUser);
-app.get('/api/v1/users/:userId/reviews', getUserReviews);
-
-// 리뷰 관련 라우트
-app.post('/api/v1/reviews', handleCreateStoreReview);
-
-// 미션 도전 관련 라우트
-app.post('/api/v1/missions/:missionId/challenge', handleChallengeMission);
-
-// 미션 추가 (관리자용)
-app.post('/api/v1/missions', handleAddMission);
 
 // 서버 시작
 async function startServer() {
@@ -463,24 +483,8 @@ startServer().catch(error => {
 
 app.get("/api/v1/stores/:storeId/reviews", handleListStoreReviews);
 
-
-
-//7주차 시작
-const isLogin = (req, res, next) => {
-    // cookie-parser가 만들어준 req.cookies 객체에서 username을 확인
-    const { username } = req.cookies; 
-
-    if (username) {
-     
-        console.log(`[인증 성공] ${username}님, 환영합니다.`);
-        next(); 
-    } else {
-    
-        console.log('[인증 실패] 로그인이 필요합니다.');
-        res.status(401).send('<script>alert("로그인이 필요합니다!");location.href="/login";</script>');
-    }
-};
-
+// JWT 인증 미들웨어
+const isLogin = passport.authenticate('jwt', { session: false });
 
 app.get('/', (req, res) => {
     res.send(`
@@ -497,14 +501,16 @@ app.get('/login', (req, res) => {
     res.send('<h1>로그인 페이지</h1><p>로그인이 필요한 페이지에서 튕겨나오면 여기로 옵니다.</p>');
 });
 
-
 app.get('/mypage', isLogin, (req, res) => {
-    res.send(`
-        <h1>마이페이지</h1>
-        <p>환영합니다, ${req.cookies.username}님!</p>
-        <p>이 페이지는 로그인한 사람만 볼 수 있습니다.</p>
-    `);
+  res.status(200).json({
+    success: true,
+    message: `인증 성공! ${req.user.name}님의 마이페이지입니다.`,
+    data: {
+      user: req.user
+    }
+  });
 });
+
 
 
 app.get('/set-login', (req, res) => {

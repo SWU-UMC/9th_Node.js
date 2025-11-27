@@ -1,11 +1,59 @@
 import { StatusCodes } from 'http-status-codes';
 import { bodyToUser } from '../dtos/user.dto.js';
-import { userSignUp } from '../services/user.service.js';
+import { userSignUp, updateUser } from '../services/user.service.js';
 import { ValidationError } from '../errors.js';
 import { prisma } from '../db.config.js';
 
 /**
  * @swagger
+ * components:
+ *   schemas:
+ *     User:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           description: 사용자 고유 ID
+ *           example: 1
+ *         email:
+ *           type: string
+ *           format: email
+ *           description: 사용자 이메일
+ *           example: "user@example.com"
+ *         name:
+ *           type: string
+ *           description: 사용자 이름
+ *           example: "홍길동"
+ *         gender:
+ *           type: string
+ *           enum: [MALE, FEMALE, OTHER]
+ *           description: 성별
+ *           example: "MALE"
+ *         birth:
+ *           type: string
+ *           format: date
+ *           description: 생년월일 (YYYY-MM-DD)
+ *           example: "1990-01-01"
+ *         address:
+ *           type: string
+ *           description: 기본 주소
+ *           example: "서울특별시 강남구 테헤란로 123"
+ *         detailAddress:
+ *           type: string
+ *           description: 상세 주소
+ *           example: "101동 101호"
+ *         phoneNumber:
+ *           type: string
+ *           nullable: true
+ *           description: 휴대폰 번호 ('-' 제외)
+ *           example: "01012345678"
+ *         preferences:
+ *           type: array
+ *           description: 선호 카테고리 목록
+ *           items:
+ *             type: string
+ *           example: ["한식", "중식"]
+ *
  * /api/users/signup:
  *   post:
  *     summary: 사용자 회원가입
@@ -158,6 +206,88 @@ export const handleUserSignUp = async (req, res, next) => {
     const result = await userSignUp(user);
     res.success(result);
   } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @swagger
+ * /api/v1/users/me:
+ *   put:
+ *     tags: [User]
+ *     summary: 사용자 정보 수정
+ *     description: 인증된 사용자의 정보를 업데이트합니다.
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: 사용자 이름
+ *               gender:
+ *                 type: string
+ *                 enum: [MALE, FEMALE, OTHER]
+ *                 description: 사용자 성별
+ *               birth:
+ *                 type: string
+ *                 format: date
+ *                 description: 사용자 생년월일 (YYYY-MM-DD 형식)
+ *               address:
+ *                 type: string
+ *                 description: 사용자 주소
+ *               detailAddress:
+ *                 type: string
+ *                 description: 사용자 상세 주소
+ *               phoneNumber:
+ *                 type: string
+ *                 description: 사용자 전화번호 (하이픈 없이 입력)
+ *               preferences:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   enum: [한식, 일식, 중식, 양식, 치킨, 분식, 고기/구이, 도시락, 야식, 패스트푸드, 디저트, 아시안푸드]
+ *                 description: 사용자 음식 선호도
+ *     responses:
+ *       200:
+ *         description: 사용자 정보가 성공적으로 업데이트됨
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *       400:
+ *         description: 잘못된 입력 데이터
+ *       401:
+ *         description: 인증 실패
+ *       404:
+ *         description: 사용자를 찾을 수 없음
+ *       500:
+ *         description: 서버 내부 오류
+ */
+export const updateMyProfile = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const updateData = req.body;
+
+    // Validate input data
+    if (!updateData || Object.keys(updateData).length === 0) {
+      throw new ValidationError('업데이트할 정보를 입력해주세요.');
+    }
+
+    // Update user information
+    const updatedUser = await updateUser(userId, updateData);
+    
+    res.status(StatusCodes.OK).json({
+      success: true,
+      message: '사용자 정보가 성공적으로 업데이트되었습니다.',
+      data: updatedUser
+    });
+  } catch (error) {
+    console.error('사용자 정보 업데이트 중 오류 발생:', error);
     next(error);
   }
 };

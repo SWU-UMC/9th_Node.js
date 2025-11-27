@@ -219,12 +219,96 @@ function mapPreferencesToCategoryIds(preferences = []) {
  * @param {Object} user - 사용자 객체
  * @returns {Object} 민감 정보가 제거된 사용자 객체
  */
-function excludeSensitiveData(user) {
+export const excludeSensitiveData = (user) => {
   if (!user) return null;
   
   const { password, ...userWithoutPassword } = user;
   return userWithoutPassword;
-}
+};
+
+/**
+ * 사용자 정보 업데이트
+ * @param {number} userId - 업데이트할 사용자 ID
+ * @param {Object} updateData - 업데이트할 사용자 정보
+ * @returns {Promise<Object>} 업데이트된 사용자 정보
+ * @throws {NotFoundError} 사용자를 찾을 수 없을 때
+ * @throws {ValidationError} 유효성 검사 실패 시
+ */
+export const updateUser = async (userId, updateData) => {
+  try {
+    // 1. 사용자 존재 여부 확인
+    const existingUser = await prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        preferences: true
+      }
+    });
+
+    if (!existingUser) {
+      throw new NotFoundError('사용자를 찾을 수 없습니다.');
+    }
+
+    // 2. 업데이트할 데이터 준비
+    const dataToUpdate = {
+      name: updateData.name,
+      gender: updateData.gender,
+      birth: updateData.birth ? new Date(updateData.birth) : null,
+      address: updateData.address,
+      detailAddress: updateData.detailAddress || null,
+      phoneNumber: updateData.phoneNumber || null
+    };
+
+    // 3. 선호 카테고리 업데이트
+    let foodCategoryIds = [];
+    if (updateData.preferences && updateData.preferences.length > 0) {
+      foodCategoryIds = mapPreferencesToCategoryIds(updateData.preferences);
+    }
+
+    // 4. 트랜잭션으로 사용자 정보와 선호 카테고리 업데이트
+    const [updatedUser] = await prisma.$transaction([
+      // 사용자 정보 업데이트
+      prisma.user.update({
+        where: { id: userId },
+        data: dataToUpdate,
+        include: {
+          preferences: {
+            include: {
+              foodCategory: true
+            }
+          }
+        }
+      }),
+      // 기존 선호 카테고리 삭제
+      prisma.userPreference.deleteMany({
+        where: { userId }
+      }),
+      // 새로운 선호 카테고리 추가
+      ...(foodCategoryIds.length > 0 ? [
+        prisma.userPreference.createMany({
+          data: foodCategoryIds.map(categoryId => ({
+            userId,
+            foodCategoryId: categoryId
+          }))
+        })
+      ] : [])
+    ]);
+
+    // 5. 업데이트된 사용자 정보 조회 (선호 카테고리 포함)
+    const userWithPreferences = await getUser(userId);
+    
+    // 6. 민감 정보 제거 후 반환
+    return excludeSensitiveData(userWithPreferences);
+    
+  } catch (error) {
+    console.error('사용자 정보 업데이트 중 오류 발생:', error);
+    
+    if (error.code === 'P2002') {
+      throw new ValidationError('이미 사용 중인 이메일입니다.');
+    }
+    
+    throw error;
+  }
+};
 
 /**
  * 이메일로 사용자 조회
