@@ -12,7 +12,6 @@ export const findUserByMission = async (user_id, mission_id) => {
     return user_mission;
   } catch (error) {
     console.error("도전 확인 중 에러:", error);
-    throw error;
   }
 };
 
@@ -31,7 +30,6 @@ export const createUserMission = async (data) => {
     return user_mission.user_mission_id; // PK 반환
   } catch (error) {
     console.error("도전 미션 생성 중 에러: ", error);
-    throw error;
   }
 };
 
@@ -44,7 +42,6 @@ export const getUserMissionById = async (user_mission_id) => {
     return user_mission;
   } catch (error) {
     console.error("유저 미션 조회 중 에러:", error);
-    throw error;
   }
 };
 

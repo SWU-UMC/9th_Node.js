@@ -14,7 +14,6 @@ export const addRestaurant = async ({ restaurant_name, restaurant_address, latit
     return restaurant;
   } catch (err) {
     console.error("레스토랑 추가 중 에러: ", err);
-    throw err;
   }
 };
 
@@ -27,7 +26,6 @@ export const getRestaurantById = async (id) => {
     return restaurant
   } catch (err) {
     console.error("특정 레스토랑 조회 중 에러: ",  err);
-    throw err;
   }
 };
 
@@ -72,6 +70,5 @@ export const getMissionsByRestaurantId = async (restaurant_id, cursor = null, li
     return { missions, nextCursor };
   } catch (err) {
     console.error("레스토랑 ID로 미션 조회 중 에러:", err);
-    throw err;
   }
 };

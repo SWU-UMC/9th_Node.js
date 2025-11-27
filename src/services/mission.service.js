@@ -1,5 +1,6 @@
 import { responseFromMission } from "../dtos/mission.dto.js";
 import { addMission, getMissionById } from "../repositories/mission.repository.js";
+import { getRestaurantById } from "../repositories/restaurant.repository.js";
 import { DuplicateUserEmailError } from "../errors.js";
 
 export const missionAdd = async (data) => {
