@@ -3,27 +3,14 @@ import express from "express";
 import cors from "cors";
 import swaggerAutogen from "swagger-autogen";
 import swaggerUiExpress from "swagger-ui-express";
-
-import { authMiddleware } from "./middlewares/auth.middleware.js";
-
-import { handleUserSignUp,
-        handleUpdateMe } from "./controllers/user.controller.js";
-import { handleAddStore } from "./controllers/store.controller.js";
-import { handleAddReview,
-        handleListUserReviews,
-        handleListStoreReviews, } from "./controllers/review.controller.js";
-import { handleAddMission,
-        handleListMissionsByStore, } from "./controllers/mission.controller.js";
-import {
-  handleChallengeMission,
-  handleListActiveMissions,
-  handleCompleteMission,
-} from "./controllers/userMission.controller.js";
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
 import passport from "passport";
 import { googleStrategy, jwtStrategy } from "./auth.config.js";
 import authRouter from "./routes/auth.routes.js";
+import usersRouter from "./routes/users.route.js";
+import storesRouter from "./routes/stores.route.js";
+import missionsRouter from "./routes/missions.route.js";
 import { prisma } from "./db.config.js";
 
 dotenv.config();
@@ -163,10 +150,18 @@ app.get("/openapi.json", async (req, res, next) => {
   }
 });
 
+
 /**
- * OAuth / 인증 라우터 등록
+ * 라우터 설정
  */
+// OAuth / 인증 라우터
 app.use("/", authRouter);
+
+// 도메인 라우터
+app.use("/api/v1", usersRouter);
+app.use("/api/v1", storesRouter);
+app.use("/api/v1", missionsRouter);
+
 
 // JWT 로그인 확인 미들웨어
 const isLogin = passport.authenticate('jwt', { session: false });
@@ -179,32 +174,6 @@ app.get('/mypage', isLogin, (req, res) => {
   });
 });
 
-/**
- * 라우터 설정
- */
-// 사용자
-app.post("/api/v1/users/signup", handleUserSignUp);
-app.patch("/api/v1/users/me", authMiddleware, handleUpdateMe);
-app.get("/api/v1/users/:user_id/reviews", handleListUserReviews);
-app.get("/api/v1/users/:user_id/missions", handleListActiveMissions);
-
-
-// 지역 및 가게
-app.post("/api/v1/regions/:region_id/stores", authMiddleware, handleAddStore);
-app.get("/api/v1/stores/:store_id/missions", handleListMissionsByStore);
-
-// 리뷰
-app.post("/api/v1/stores/:store_id/reviews", authMiddleware, handleAddReview);
-app.get("/api/v1/stores/:store_id/reviews", handleListStoreReviews);
-
-// 미션
-app.post("/api/v1/stores/:store_id/missions", authMiddleware, handleAddMission);
-app.post("/api/v1/missions/:mission_id/challenges", authMiddleware, handleChallengeMission);
-app.patch(
-  "/api/v1/user-missions/:user_mission_id/complete",
-  authMiddleware,
-  handleCompleteMission
-);
 
 /**
  * 전역 오류를 처리하기 위한 미들웨어
