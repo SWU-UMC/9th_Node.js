@@ -56,6 +56,102 @@ export const startMissionController = async (req, res, next) => {
       }
     }
   }
+
+  #swagger.responses[400] = {
+    description: "잘못된 요청 데이터"
+    content: {
+      "application/json": {
+        schema: {
+          type: "object",
+          properties: {
+            resultType: { type: "string", example: "FAIL" },
+            error: {
+              type: "object",
+              properties: {
+                errorCode: { type: "string", example: "INVALID_INPUT" },
+                reason: { type: "string", example: "요청 본문이 유효하지 않습니다." } 
+                }
+              },
+              success: { type: "object", nullable: true, example: null }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  #swagger.responses[401] = {
+    description: "인증 실패"
+    content: {
+      "application/json": {
+        schema: {
+          type: "object",
+          properties: {
+            resultType: { type: "string", example: "FAIL" },
+            error: {
+              type: "object",
+              properties: {
+                errorCode: { type: "string", example: "UNAUTHORIZED" },
+                reason: { type: "string", example: "접근 권한이 없거나 토큰이 유효하지 않습니다." }
+                }
+              },
+              success: { type: "object", nullable: true, example: null }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  #swagger.responses[404] = {
+    description: "리소스를 찾을 수 없음"
+    content: {
+      "application/json": {
+        schema: {
+          type: "object",
+          properties: {
+            resultType: { type: "string", example: "FAIL" },
+            error: {
+              type: "object",
+              properties: {
+                errorCode: { type: "string", example: "NOT_FOUND" },
+                reason: { type: "string", example: "미션 ID 혹은 사용자 ID를 찾을 수 없습니다. " }
+                }
+              },
+              success: { type: "object", nullable: true, example: null }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  #swagger.responses[500] = {
+    description: "서버 내부 오류"
+    content: {
+      "application/json": {
+        schema: {
+          type: "object",
+          properties: {
+            resultType: { type: "string", example: "FAIL" },
+            error: {
+              type: "object",
+              properties: {
+                errorCode: { type: "string", example: "INTERNAL_SERVER_ERROR" },
+                reason: { type: "string", example: "사용자 미션 시작 중에 예기치 않은 오류가 발생했습니다. " }
+                }
+              },
+              success: { type: "object", nullable: true, example: null }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
 */
 
   try {
@@ -66,7 +162,7 @@ export const startMissionController = async (req, res, next) => {
 
     const userMission = await startMission(user_id, missionIdAsNumber);
 
-    res.status(StatusCodes.CREATED(201)).success(userMission);
+    res.status(StatusCodes.CREATED).success(userMission);
   } catch (error) {
     next(error); // 에러 핸들러로 넘김
   }
@@ -152,6 +248,102 @@ export const handleOngoingMissions = async (req, res, next) => {
       }
     }
   }
+
+  #swagger.responses[400] = {
+    description: "잘못된 요청 데이터"
+    content: {
+      "application/json": {
+        schema: {
+          type: "object",
+          properties: {
+            resultType: { type: "string", example: "FAIL" },
+            error: {
+              type: "object",
+              properties: {
+                errorCode: { type: "string", example: "INVALID_INPUT" },
+                reason: { type: "string", example: "요청 본문이 유효하지 않습니다." } 
+                }
+              },
+              success: { type: "object", nullable: true, example: null }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  #swagger.responses[401] = {
+    description: "인증 실패"
+    content: {
+      "application/json": {
+        schema: {
+          type: "object",
+          properties: {
+            resultType: { type: "string", example: "FAIL" },
+            error: {
+              type: "object",
+              properties: {
+                errorCode: { type: "string", example: "UNAUTHORIZED" },
+                reason: { type: "string", example: "접근 권한이 없거나 토큰이 유효하지 않습니다." }
+                }
+              },
+              success: { type: "object", nullable: true, example: null }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  #swagger.responses[404] = {
+    description: "리소스를 찾을 수 없음"
+    content: {
+      "application/json": {
+        schema: {
+          type: "object",
+          properties: {
+            resultType: { type: "string", example: "FAIL" },
+            error: {
+              type: "object",
+              properties: {
+                errorCode: { type: "string", example: "NOT_FOUND" },
+                reason: { type: "string", example: "사용자 ID를 찾을 수 없습니다. " }
+                }
+              },
+              success: { type: "object", nullable: true, example: null }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  #swagger.responses[500] = {
+    description: "서버 내부 오류"
+    content: {
+      "application/json": {
+        schema: {
+          type: "object",
+          properties: {
+            resultType: { type: "string", example: "FAIL" },
+            error: {
+              type: "object",
+              properties: {
+                errorCode: { type: "string", example: "INTERNAL_SERVER_ERROR" },
+                reason: { type: "string", example: "진행 중인 미션 조회 중에 예기치 않은 오류가 발생했습니다. " }
+                }
+              },
+              success: { type: "object", nullable: true, example: null }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
 */
 
   try {
@@ -166,7 +358,7 @@ export const handleOngoingMissions = async (req, res, next) => {
       Number(limit) || 5
     );
 
-    res.status(StatusCodes.CREATED(201)).success(result);
+    res.status(StatusCodes.CREATED).success(result);
   } catch (error) {
     next(error);
   }

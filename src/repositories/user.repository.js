@@ -39,14 +39,17 @@ export const getUserPreferencesByUserId = async (userId) => {
     },
     where: { userId: userId },
     orderBy: {
-      foodCategory: "asc"
-    },
+      foodCategory: {
+            name: "asc" // foodCategory 관계를 통해 name 필드를 기준으로 오름차순 정렬
+        }
+      }
   });
   return preferences;
 };
 
 export const responseFromUser = (user, preferences) => ({
     id:user.id,
+    token: token,
     email: user.email,
     name: user.name,
     address: user.address,
@@ -57,3 +60,47 @@ export const responseFromUser = (user, preferences) => ({
         name: pref.name
     }))
 });
+
+export const updateUser = async (userId, updateData) => {
+    try {
+        const updatedUser = await prisma.user.update({
+            where: { id: userId },
+            data: updateData,
+            select: {
+                id: true,
+                email: true,
+                name: true,
+                gender: true,
+                birth: true,
+                address: true,
+                detailAddress: true,
+                phoneNumber: true,
+            },
+        });
+        return updatedUser;
+    } catch (error) {
+        return null;
+    }
+};
+
+export const updateUserPreferences = async (userId, foodCategoryIds) => {
+    await prisma.$transaction(async (tx) => {
+        // 기존 선호 카테고리 전체 삭제
+        await tx.userFavorCategory.deleteMany({
+            where: { userId: userId },
+        });
+
+        // 새로운 카테고리 레코드 준비 및 생성
+        if (foodCategoryIds && foodCategoryIds.length > 0) {
+            const preferenceRecords = foodCategoryIds.map(foodCategoryId => ({
+                userId: userId,
+                foodCategoryId: foodCategoryId
+            }));
+            
+            await tx.userFavorCategory.createMany({
+                data: preferenceRecords,
+                skipDuplicates: true,
+            });
+        }
+    });
+};
