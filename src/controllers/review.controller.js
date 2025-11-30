@@ -59,7 +59,105 @@ export const addReviewController = async (req, res, next) => {
       }
     }
   }
+
+  #swagger.responses[400] = {
+    description: "잘못된 요청 데이터"
+    content: {
+      "application/json": {
+        schema: {
+          type: "object",
+          properties: {
+            resultType: { type: "string", example: "FAIL" },
+            error: {
+              type: "object",
+              properties: {
+                errorCode: { type: "string", example: "INVALID_INPUT" },
+                reason: { type: "string", example: "요청 본문이 유효하지 않습니다." } 
+                }
+              },
+              success: { type: "object", nullable: true, example: null }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  #swagger.responses[401] = {
+    description: "인증 실패"
+    content: {
+      "application/json": {
+        schema: {
+          type: "object",
+          properties: {
+            resultType: { type: "string", example: "FAIL" },
+            error: {
+              type: "object",
+              properties: {
+                errorCode: { type: "string", example: "UNAUTHORIZED" },
+                reason: { type: "string", example: "인증 토큰이 없거나 유효하지 않습니다." }
+                }
+              },
+              success: { type: "object", nullable: true, example: null }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  #swagger.responses[404] = {
+    description: "리소스를 찾을 수 없음"
+    content: {
+      "application/json": {
+        schema: {
+          type: "object",
+          properties: {
+            resultType: { type: "string", example: "FAIL" },
+            error: {
+              type: "object",
+              properties: {
+                errorCode: { type: "string", example: "NOT_FOUND" },
+                reason: { type: "string", example: "해당 ID의 레스토랑 또는 사용자를 찾을 수 없습니다." }
+                }
+              },
+              success: { type: "object", nullable: true, example: null }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  #swagger.responses[500] = {
+    description: "서버 내부 오류"
+    content: {
+      "application/json": {
+        schema: {
+          type: "object",
+          properties: {
+            resultType: { type: "string", example: "FAIL" },
+            error: {
+              type: "object",
+              properties: {
+                errorCode: { type: "string", example: "INTERNAL_SERVER_ERROR" },
+                reason: { type: "string", example: "리뷰 등록 중 예기치 않은 서버 오류가 발생했습니다." }
+                }
+              },
+              success: { type: "object", nullable: true, example: null }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
 */
+
     try {
         const { restaurant_id } = req.params;
         const { user_id, mission_id } = req.body;
@@ -143,7 +241,104 @@ export const handleUserReviewList = async (req, res, next) => {
         }
       } 
     }
-  }; 
+  }
+
+  #swagger.responses[400] = {
+    description: "잘못된 요청 데이터"
+    content: {
+      "application/json": {
+        schema: {
+          type: "object",
+          properties: {
+            resultType: { type: "string", example: "FAIL" },
+            error: {
+              type: "object",
+              properties: {
+                errorCode: { type: "string", example: "INVALID_INPUT" },
+                reason: { type: "string", example: "요청 본문이 유효하지 않습니다." } 
+                }
+              },
+              success: { type: "object", nullable: true, example: null }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  #swagger.responses[401] = {
+    description: "인증 실패"
+    content: {
+      "application/json": {
+        schema: {
+          type: "object",
+          properties: {
+            resultType: { type: "string", example: "FAIL" },
+            error: {
+              type: "object",
+              properties: {
+                errorCode: { type: "string", example: "UNAUTHORIZED" },
+                reason: { type: "string", example: "접근 권한이 없거나 토큰이 유효하지 않습니다." }
+                }
+              },
+              success: { type: "object", nullable: true, example: null }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  #swagger.responses[404] = {
+    description: "리소스를 찾을 수 없음"
+    content: {
+      "application/json": {
+        schema: {
+          type: "object",
+          properties: {
+            resultType: { type: "string", example: "FAIL" },
+            error: {
+              type: "object",
+              properties: {
+                errorCode: { type: "string", example: "NOT_FOUND" },
+                reason: { type: "string", example: "해당 user_id를 가진 사용자를 찾을 수 없습니다." }
+                }
+              },
+              success: { type: "object", nullable: true, example: null }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  #swagger.responses[500] = {
+    description: "서버 내부 오류"
+    content: {
+      "application/json": {
+        schema: {
+          type: "object",
+          properties: {
+            resultType: { type: "string", example: "FAIL" },
+            error: {
+              type: "object",
+              properties: {
+                errorCode: { type: "string", example: "INTERNAL_SERVER_ERROR" },
+                reason: { type: "string", example: "리뷰 목록 조회 중 예기치 않은 서버 오류가 발생했습니다." }
+                }
+              },
+              success: { type: "object", nullable: true, example: null }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
 */
 
   try {

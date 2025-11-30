@@ -1,13 +1,12 @@
 import { addRestaurant, getRestaurantById, getAllRestaurantReviews, getMissionsByRestaurantId } from "../repositories/restaurant.repository.js";
 import { bodyToRestaurant, responseFromRestaurant } from "../dtos/restaurant.dto.js";
 import { responseFromMission } from "../dtos/mission.dto.js";
-import { responseFromReview } from "../dtos/review.dto.js";
-import { DuplicateUserEmailError } from "../errors.js";
+import { InvalidInputError } from "../errors.js";
 
 export const restaurantAdd = async (body) => {
   const restaurantData = bodyToRestaurant(body);
   if (!restaurantData.restaurant_name) {
-    throw new DuplicateUserEmailError("restaurant_name은 필수입니다.", body);
+    throw new InvalidInputError("restaurant_name은 필수입니다.", body);
   }
   const newRestaurant = await addRestaurant(restaurantData);
   return responseFromRestaurant(newRestaurant);

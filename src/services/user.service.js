@@ -1,5 +1,5 @@
 import { responseFromUser } from "../dtos/user.dto.js";
-import { DuplicateUserEmailError } from "../errors.js";
+import { DuplicateUserEmailError, UnauthorizedError } from "../errors.js";
 import jwt from "jsonwebtoken";
 import bcrypt from 'bcrypt';
 
@@ -41,7 +41,7 @@ export const userSignUp = async (data) => {
   const preferences = await getUserPreferencesByUserId(joinUserId);
 
   const accessToken = jwt.sign(
-        { id: user.id, email: user.email }, // Payload: 사용자 ID와 이메일
+        { id: user.id, email: user.email, gender: user.gender, birth: user.birth, address: user.address }, // Payload: 사용자 ID와 이메일
         JWT_SECRET,
         { expiresIn: '1h' } // 만료 시간 1시간 설정
     );
@@ -54,7 +54,7 @@ export const userUpdateInfo = async (userId, data) => {
   const updatedUser = await updateUser(userId, updateData);
 
   if (!updatedUser) {
-        throw new Error("사용자를 찾을 수 없거나 업데이트할 데이터가 유효하지 않습니다.");
+        throw new UnauthorizedError("사용자를 찾을 수 없거나 업데이트할 데이터가 유효하지 않습니다.");
   }
 
   //선호 카테고리 갱신하기
