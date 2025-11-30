@@ -1,9 +1,19 @@
 // src/dtos/userMission.dto.js
 
-export const bodyToUserMission = (body, missionId) => {
+import { createBadRequestError } from "../error.js";
+
+export const bodyToUserMission = (userId, missionId) => {
+  if (!missionId || typeof missionId !== "number" || missionId <= 0) {
+    throw createBadRequestError("유효한 missionId가 필요합니다.", { missionId });
+  }
+
+  if (!userId || typeof userId !== "number" || userId <= 0) {
+    throw createBadRequestError("유효한 userId가 필요합니다.", { userId });
+  }
+
   return {
-    userId: body.user_id,
-    missionId: missionId,
+    userId,
+    missionId,
   };
 };
 
