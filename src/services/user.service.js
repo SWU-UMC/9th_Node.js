@@ -279,12 +279,12 @@ export const updateUser = async (userId, updateData) => {
         }
       }),
       // 기존 선호 카테고리 삭제
-      prisma.userPreference.deleteMany({
+      prisma.userFavorCategory.deleteMany({
         where: { userId }
       }),
       // 새로운 선호 카테고리 추가
       ...(foodCategoryIds.length > 0 ? [
-        prisma.userPreference.createMany({
+        prisma.userFavorCategory.createMany({
           data: foodCategoryIds.map(categoryId => ({
             userId,
             foodCategoryId: categoryId
@@ -317,9 +317,19 @@ export const updateUser = async (userId, updateData) => {
  */
 export const getUserByEmail = async (email) => {
   try {
-    const user = await getUser(email);
+    // 비밀번호 포함하여 사용자 정보 조회 (excludeSensitiveData 호출 제거)
+    const user = await prisma.user.findUnique({ 
+      where: { email },
+      include: {
+        preferences: {
+          include: {
+            foodCategory: true
+          }
+        }
+      }
+    });
     
-    return user ? excludeSensitiveData(user) : null;
+    return user || null;
   } catch (error) {
     console.error('사용자 조회 중 오류 발생:', error);
     throw new InternalServerError('사용자 정보를 가져오는 중 오류가 발생했습니다.');
@@ -348,5 +358,6 @@ export const authenticateUser = async (email, password) => {
     ]);
   }
   
+  // 인증 성공 시에만 민감한 정보 제거
   return excludeSensitiveData(user);
 };

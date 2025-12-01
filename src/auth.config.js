@@ -34,17 +34,33 @@ const googleVerify = async (profile) => {
   if (user !== null) {
     return { id: user.id, email: user.email, name: user.name };
   }
-
+  /*
+  // 기본 프로필 이미지 설정 (필요시)
+  const defaultProfileImage = 'https://example.com/default-profile.png';
+*/
   const created = await prisma.user.create({
     data: {
       email,
       name: profile.displayName,
-      gender: "추후 수정",
-      birth: new Date(1970, 0, 1),
-      address: "추후 수정",
-      detailAddress: "추후 수정",
-      phoneNumber: "추후 수정",
+      gender: "Other", // 기본값을 Other로 설정 (Male/Female/Other)
+      birth: new Date(2000, 0, 1), // 기본 생년월일 설정 (2000-01-01)
+      address: "",
+      detailAddress: "",
+      phoneNumber: "",
+      profileImage: profile.photos?.[0]?.value || defaultProfileImage,
+      password: "", // 소셜 로그인 사용자는 비밀번호 없음
+      // 선호 카테고리 초기화 (빈 배열로 생성)
+      preferences: {
+        create: []
+      }
     },
+    include: {
+      preferences: {
+        include: {
+          foodCategory: true
+        }
+      }
+    }
   });
 
   return { id: created.id, email: created.email, name: created.name };
