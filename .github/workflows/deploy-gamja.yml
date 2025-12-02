@@ -3,7 +3,7 @@ name: deploy-potato
 on:
   push:
     branches:
-      - 감자/main    #의 배포 브랜치 감자/main
+      - "감자/main"
   workflow_dispatch:
 
 jobs:
