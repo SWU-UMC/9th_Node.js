@@ -123,7 +123,7 @@ const router = express.Router();
  *                   example: null
  */
 
-router.post("/restaurant/:id/mission",isLogin, async (req, res) => { //미션 생성은 로그인 필수!
+router.post("/restaurant/:id/mission",isLogin, async (req, res, next) => { //미션 생성은 로그인 필수!
   const { id } = req.params;
   const data = req.body;
 

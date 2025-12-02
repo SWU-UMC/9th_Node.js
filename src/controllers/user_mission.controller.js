@@ -15,11 +15,11 @@ const router = express.Router();
 
 
  // [POST] 미션 도전 시작
- // URL: /api/user/:userId/mission/:missionId
+ // URL: /api/user/mission/:missionId
 
 /**
  * @swagger
- * /api/user/{userId}/mission/{missionId}:
+ * /api/user/mission/{missionId}:
  *   post:
  *     tags:
  *       - UserMission
@@ -39,17 +39,9 @@ const router = express.Router();
  *
  *     parameters:
  *       - in: path
- *         name: userId
- *         required: true
- *         description: 미션을 시작할 유저의 고유 번호
- *         schema:
- *           type: integer
- *           example: 3
- *
- *       - in: path
  *         name: missionId
  *         required: true
- *         description: 시작할 미션의 고유 번호
+ *         description: 시작할 미션 ID
  *         schema:
  *           type: integer
  *           example: 7
@@ -76,8 +68,9 @@ const router = express.Router();
  *               success: null
  */
 
-router.post("/user/:userId/mission/:missionId", isLogin, async (req, res) => { //미션 도전 시작은 로그인한 사용자만!
-  const { userId, missionId } = req.params;
+router.post("/user/mission/:missionId", isLogin, async (req, res,next) => { //미션 도전 시작은 로그인한 사용자만!
+  const userId = req.user.user_id;   // JWT에서 가져오기
+  const { missionId } = req.params;  // missionId만 받기 -> 피드백 반영 수정.
 
   try {
     const mission = await startUserMission(userId, missionId);
@@ -158,7 +151,7 @@ router.post("/user/:userId/mission/:missionId", isLogin, async (req, res) => { /
  *                 reason: 미션 완료 처리에 실패했습니다.
  *               success: null
  */
-router.patch("/user_mission/:id/complete",isLogin, async (req, res) => { //미션 완료! 로그인한 사용자만 가능해야함!
+router.patch("/user_mission/:id/complete",isLogin, async (req, res,next) => { //미션 완료! 로그인한 사용자만 가능해야함!
   const { id } = req.params;
 
   try {
@@ -192,7 +185,7 @@ router.patch("/user_mission/:id/complete",isLogin, async (req, res) => { //미�
 
 /**
  * @swagger
- * /api/users/{userId}/missions/in-progress:
+ * /api/users/missions/in-progress:
  *   get:
  *     tags:
  *       - UserMission
@@ -204,20 +197,11 @@ router.patch("/user_mission/:id/complete",isLogin, async (req, res) => { //미�
  *       홈 화면에서 유저가 지금 어떤 미션을 수행 중인지 보여줄 때 사용됩니다.
  *
  *       반환되는 정보는 다음과 같습니다.
- *       - 사용자의 아이디
  *       - 미션 제목과 상세 내용
  *       - 어떤 가게의 미션인지
  *       - 미션 보상 포인트
  *       - 미션 시작 시간
  *
- *     parameters:
- *       - in: path
- *         name: userId
- *         required: true
- *         description: 진행 중인 미션을 조회할 유저의 고유 번호
- *         schema:
- *           type: integer
- *           example: 3
  *
  *     responses:
  *       200:
@@ -227,7 +211,6 @@ router.patch("/user_mission/:id/complete",isLogin, async (req, res) => { //미�
  *             example:
  *               success: true
  *               data:
- *                 - user_id: 3
  *                   restaurant_name: 가게이름a
  *                   region_id: 1
  *                   mission_id: 7
@@ -247,8 +230,8 @@ router.patch("/user_mission/:id/complete",isLogin, async (req, res) => { //미�
  *                 reason: 진행 중인 미션이 없습니다.
  *               success: null
  */
-router.get("/users/:userId/missions/in-progress", async (req, res) => {
-  const { userId } = req.params;
+router.get("/users/missions/in-progress", isLogin,async (req, res,next) => {
+  const userId = req.user.user_id;   // 로그인한 사용자 : 피드백 바탕으로 수정.
 
   try {
     const missions = await listInProgressMissionsByUser(userId);

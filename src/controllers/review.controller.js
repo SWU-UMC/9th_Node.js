@@ -48,9 +48,6 @@ const router = express.Router();
  *               restaurant_id:
  *                 type: number
  *                 example: 10
- *               user_id:
- *                 type: number
- *                 example: 5
  *               rating:
  *                 type: number
  *                 example: 5
@@ -94,14 +91,14 @@ const router = express.Router();
  */
 
 router.post("/review", isLogin,async (req, res,next) => { //리부작성은 로그인한 사용자만 가능해야함!
-  const { mission_id, restaurant_id, user_id, content, rating, photo, restaurant_name } = req.body;
+  const { mission_id, restaurant_id, content, rating, photo, restaurant_name } = req.body;
 
   try {
     const newReview = await prisma.mission_review.create({
       data: {
         mission_id: Number(mission_id),
         restaurant_id: Number(restaurant_id),
-        user_id: Number(user_id),
+        user_id: req.user.user_id,    // JWT에서 가져옴 : 피드백 바탕으로 수정.
         content,
         rating: Number(rating),
         photo,
@@ -265,7 +262,7 @@ router.get("/v1/stores/:storeId/reviews", async (req, res,next) => {
 
 /**
  * @swagger
- * /api/users/{userId}/reviews:
+ * /api/users/reviews:
  *   get:
  *     tags:
  *       - Review
@@ -286,7 +283,6 @@ router.get("/v1/stores/:storeId/reviews", async (req, res,next) => {
  *
  *     parameters:
  *       - in: path
- *         name: userId
  *         required: true
  *         description: 리뷰를 조회할 유저의 고유 번호
  *         schema:
@@ -322,8 +318,8 @@ router.get("/v1/stores/:storeId/reviews", async (req, res,next) => {
  *                 reason: 작성한 리뷰가 없습니다.
  *               success: null
  */
-router.get("/users/:userId/reviews", async (req, res,next) => {
-  const { userId } = req.params;
+router.get("/users/reviews", isLogin, async (req, res, next) => {
+  const userId = req.user.user_id;
 
   try {
     const reviews = await findReviewsByUserId(userId);
