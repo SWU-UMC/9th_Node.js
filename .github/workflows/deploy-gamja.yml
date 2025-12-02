@@ -1,0 +1,79 @@
+name: deploy-potato
+
+on:
+  push:
+    branches:
+      - 감자/main    #의 배포 브랜치 감자/main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1) 현재 브랜치 코드 체크아웃
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 2) SSH 설정
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "$EC2_SSH_KEY_POTATO" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+          # ssh host 정의
+          cat >>~/.ssh/config <<END
+          Host potato
+            HostName $EC2_HOST_POTATO
+            User ubuntu
+            IdentityFile ~/.ssh/id_rsa
+            StrictHostKeyChecking no
+          END
+        env:
+          EC2_HOST_POTATO: ${{ secrets.EC2_HOST_POTATO }}
+          EC2_SSH_KEY_POTATO: ${{ secrets.EC2_SSH_KEY_POTATO }}
+
+      # 3) EC2에 배포 폴더 생성 & 권한 부여
+      - name: Prepare app folder
+        run: |
+          ssh potato 'sudo mkdir -p /opt/app'
+          ssh potato 'sudo chown ubuntu:ubuntu /opt/app'
+
+      # 4) 소스 코드 복사
+      - name: Copy workspace to EC2
+        run: |
+          scp -r ./[!.]* potato:/opt/app
+
+      # 5) Node dependencies 설치
+      - name: Install dependencies
+        run: |
+          ssh potato 'npm install --prefix /opt/app/'
+
+      # 6) systemd service 파일 작성
+      - name: Copy systemd service file
+        run: |
+          ssh potato '
+            echo "[Unit]
+            Description=Potato Node App
+            After=network.target
+
+            [Service]
+            User=ubuntu
+            ExecStart=/usr/bin/npm run dev --prefix /opt/app/
+            Restart=always
+
+            [Install]
+            WantedBy=multi-user.target" | sudo tee /etc/systemd/system/potato.service
+          '
+
+      # 7) 서비스 등록
+      - name: Enable service
+        run: |
+          ssh potato 'sudo systemctl daemon-reload'
+          ssh potato 'sudo systemctl enable potato'
+
+      # 8) 서비스 재시작
+      - name: Restart service
+        run: |
+          ssh potato 'sudo systemctl restart potato'
