@@ -14,11 +14,41 @@ router.get("/oauth2/callback/google",
     failureRedirect: "/login-failed",
   }),
   (req, res) => {
+    /*
+      #swagger.tags = ['Auth']
+      #swagger.summary = 'Google OAuth 콜백'
+      #swagger.description = 'Google 로그인 성공 후 Access Token, Refresh Token을 발급합니다.'
+
+      #swagger.responses[200] = {
+        description: 'Google OAuth 로그인 성공',
+        content: {
+          "application/json": {
+            schema: {
+              $ref: "#/components/schemas/GoogleOAuthLoginResponse"
+            }
+          }
+        }
+      }
+
+      #swagger.responses[401] = {
+        description: 'Google OAuth 로그인 실패',
+        content: {
+          "application/json": {
+            schema: {
+              $ref: "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      }
+    */
+
+    const tokens = req.user;
+
     res.json({
       resultType: "SUCCESS",
       success: {
         message: "Google 로그인 성공!",
-        tokens: req.user
+        tokens,
       }
     });
   }

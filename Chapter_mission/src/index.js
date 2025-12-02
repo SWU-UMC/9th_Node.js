@@ -138,8 +138,57 @@ app.get("/openapi.json", async (req, res, next) => {
               },
             },
             required: ["resultType", "success"],
-          }
-        }
+          },
+
+          // 구글 OAuth
+          OAuthTokenPair: {
+            type: "object",
+            properties: {
+              accessToken: {
+                type: "string",
+                description: "JWT Access Token",
+                example:
+                  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.access.payload.signature",
+              },
+              refreshToken: {
+                type: "string",
+                description: "JWT Refresh Token",
+                example:
+                  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.refresh.payload.signature",
+              },
+            },
+            required: ["accessToken", "refreshToken"],
+          },
+
+          GoogleOAuthLoginResponse: {
+            type: "object",
+            properties: {
+              resultType: {
+                type: "string",
+                enum: ["SUCCESS"],
+                example: "SUCCESS",
+              },
+              error: {
+                nullable: true,
+                example: null,
+              },
+              success: {
+                type: "object",
+                properties: {
+                  message: {
+                    type: "string",
+                    example: "Google 로그인 성공!",
+                  },
+                  tokens: {
+                    $ref: "#/components/schemas/OAuthTokenPair",
+                  },
+                },
+                required: ["message", "tokens"],
+              },
+            },
+            required: ["resultType", "success"],
+          },
+        },
       }
     };
 

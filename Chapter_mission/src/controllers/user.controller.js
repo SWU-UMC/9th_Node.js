@@ -113,6 +113,89 @@ export const handleUserSignUp = async (req, res, next) => {
   }
 };
 
+
+// 내 정보 조회 + 구글 가입 유저에게 가이드 메시지
+export const handleGetMe = async (req, res, next) => {
+  /*
+    #swagger.tags = ['Users']
+    #swagger.summary = '내 정보 조회'
+    #swagger.description = '로그인한 사용자의 정보를 조회합니다. 
+      Google 로그인으로 가입했고 프로필 정보가 비어 있는 경우, 
+      닉네임/전화번호/생년월일을 채우라는 메시지를 안내합니다.'
+
+    #swagger.responses[200] = {
+      description: '내 정보 조회 성공',
+      content: {
+        "application/json": {
+          schema: {
+            $ref: '#/components/schemas/SuccessResponse'
+          },
+          example: {
+            resultType: "SUCCESS",
+            error: null,
+            success: {
+              user: {
+                id: "1",
+                email: "test@example.com",
+                name: "김예원",
+                nickname: "google_2512345678",
+                phoneNumber: null,
+                birth: null
+              },
+              isProfileIncomplete: true,
+              guideMessage: "Google 로그인으로 가입되었습니다. 닉네임, 전화번호, 생년월일을 마이페이지에서 입력해 주세요."
+            }
+          }
+        }
+      }
+    }
+  */
+
+  try {
+    const userId = BigInt(req.user.id); // req.user.id는 문자열이므로 BigInt로 변환
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      return res.status(StatusCodes.NOT_FOUND).json({
+        resultType: "FAIL",
+        error: {
+          errorCode: "U000",
+          reason: "사용자를 찾을 수 없습니다.",
+          data: null,
+        },
+        success: null,
+      });
+    }
+
+    // Google 로그인 회원가입 판별 기준
+    // googleVerify에서 password를 "GOOGLE_OAUTH_USER"로 넣어 기준으로 체크 가능
+    const isGoogleUser = user.password === "GOOGLE_OAUTH_USER";
+
+    // 프로필이 미완성인지 판별
+    const isNicknameTemp = typeof user.nickname === "string" && user.nickname.startsWith("google_");
+    const isPhoneEmpty = !user.phoneNumber;
+    const isBirthEmpty = !user.birth;
+
+    const isProfileIncomplete =
+      isGoogleUser && (isNicknameTemp || isPhoneEmpty || isBirthEmpty);
+
+    const guideMessage = isProfileIncomplete
+      ? "Google 로그인으로 가입되었습니다. 닉네임, 전화번호, 생년월일을 마이페이지에서 입력해 주세요."
+      : null;
+
+    return res.status(StatusCodes.OK).success({
+      user: responseFromUser(user),
+      isProfileIncomplete,
+      guideMessage,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // 내 정보 수정
 export const handleUpdateMe = async (req, res, next) => {
   /*

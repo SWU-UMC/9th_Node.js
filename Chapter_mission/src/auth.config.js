@@ -7,7 +7,7 @@ import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
 dotenv.config();
 const secret = process.env.JWT_SECRET;  // .env의 비밀 키
 
-export const generateAccessToken = (user) => {
+export const generateAccessToken = (user) => { 
     return jwt.sign(
         { id: String(user.id), email: user.email },
         secret,
@@ -26,28 +26,29 @@ export const generateRefreshToken = (user) => {
 // GoogleVerify
 const googleVerify = async (profile) => {
   const email = profile.emails?.[0]?.value;
+  const name = profile.displayName || null;
+  const profileImage = profile.photos?.[0]?.value || null;
+
     if (!email) {
       throw new Error(`profile.email was not found: ${profile}`);
     }
 
     const foundUser = await prisma.user.findFirst({ where: { email } });
-    if (foundUser !== null) {
-      return { id: String(foundUser.id), email: foundUser.email, name: foundUser.name };
+    if (foundUser) {
+      return { id: String(foundUser.id), email, name: foundUser.name };
     }
 
     const createdUser  = await prisma.user.create({
       data: {
         email,
         password: "GOOGLE_OAUTH_USER",
-        // 선택 필드들
-        name: "예원",
-        birth: new Date("1999-01-01"),
-        phoneNumber: "01012345678",
-        gender: "FEMALE",   // enum (MALE | FEMALE | UNKNOWN)
-        nickname: "워니",
-        profileImage: "https://example.com/profile.jpg",
-
-        // inactiveDate는 optional
+        name: name,
+        nickname: `google_${Date.now()}`, // 임시 닉네임
+        profileImage: profileImage,
+        // 선택 항목 일단 null
+        birth: null,
+        phoneNumber: null,
+        gender: "UNKNOWN",
         inactiveDate: null,
         },
     });
@@ -74,10 +75,6 @@ export const googleStrategy = new GoogleStrategy(
 
       const jwtAccessToken = generateAccessToken(user);
       const jwtRefreshToken = generateRefreshToken(user);
-
-      // 값 변경
-      // const jwtAccessToken = "dummy-access-token";
-      // const jwtRefreshToken = "dummy-refresh-token";
      
       return cb(null, {
         accessToken: jwtAccessToken,
@@ -101,21 +98,18 @@ export const jwtStrategy = new JwtStrategy(jwtOptions, async (payload, done) => 
 
     const userId = BigInt(payload.id);
 
-    const user = await prisma.user.findFirst({ where: { id: payload.id } });
+    const user = await prisma.user.findUnique({ where: { id: userId } });
 
-    if (user) {
-      // BigInt가 응답으로 나가지 않게 가공해서 넘김
-      const safeUser = {
-        id: String(user.id),
-        email: user.email,
-        name: user.name,
-      };
+    if (!user) return done(null, false);
 
-      return done(null, safeUser);
-    } else {
-      return done(null, false);
-    }
-    } catch (err) {
-      return done(err, false);
-    }
+    const safeUser = {
+      id: String(user.id),
+      email: user.email,
+      name: user.name,
+    };
+
+    return done(null, safeUser);
+  } catch (err) {
+    return done(err, false);
+  }
 });

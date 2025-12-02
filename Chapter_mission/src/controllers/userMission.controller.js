@@ -105,12 +105,17 @@ export const handleChallengeMission = async (req, res, next) => {
   */
 
   const missionId = Number(req.params.mission_id);
-  const userId = Number(req.body.user_id);
+  const userId = req.user.id; // 로그인한 사용자
+
+  const data = {
+    userId,
+    missionId,
+  };
 
   console.log("미션 도전 요청:", { missionId, userId });
 
   try {
-    const challenge = await challengeMission(userId, missionId);
+    const challenge = await challengeMission(data);
     res.status(StatusCodes.CREATED).success(challenge);
   } catch (error) {
     next(error);
@@ -189,7 +194,7 @@ export const handleListActiveMissions = async (req, res, next) => {
     }
   */
 
-  const userId = Number(req.params.user_id);
+  const userId = req.user.id;
 
   try {
     const result = await listActiveMissions(userId);
@@ -300,12 +305,13 @@ export const handleCompleteMission = async (req, res, next) => {
     }
   */
 
+  const userId = req.user.id;
   const userMissionId = parseInt(req.params.user_mission_id);
 
   console.log("미션 완료 요청:", userMissionId);
 
   try {
-    const result = await completeUserMission(userMissionId);
+    const result = await completeUserMission(userId, userMissionId);
     res.status(StatusCodes.OK).success(result);
   } catch (error) {
     next(error);
