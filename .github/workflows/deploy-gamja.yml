@@ -1,3 +1,5 @@
+# deploy-gamja.yml(.github -> workflows 존재)
+
 name: deploy-potato
 
 on:
