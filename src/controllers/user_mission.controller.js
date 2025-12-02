@@ -1,5 +1,6 @@
 //src/controllers/user_mission.controller.js
 import express from "express";
+import { isLogin } from "../middlewares/auth.middleware.js";
 import {
   startUserMission,
   completeUserMission,
@@ -75,7 +76,7 @@ const router = express.Router();
  *               success: null
  */
 
-router.post("/user/:userId/mission/:missionId", async (req, res) => {
+router.post("/user/:userId/mission/:missionId", isLogin, async (req, res) => { //미션 도전 시작은 로그인한 사용자만!
   const { userId, missionId } = req.params;
 
   try {
@@ -157,7 +158,7 @@ router.post("/user/:userId/mission/:missionId", async (req, res) => {
  *                 reason: 미션 완료 처리에 실패했습니다.
  *               success: null
  */
-router.patch("/user_mission/:id/complete", async (req, res) => {
+router.patch("/user_mission/:id/complete",isLogin, async (req, res) => { //미션 완료! 로그인한 사용자만 가능해야함!
   const { id } = req.params;
 
   try {

@@ -81,7 +81,7 @@ model restaurant {
 model user {
   id             Int              @id @default(autoincrement())
   email          String           @unique(map: "email") @db.VarChar(255)
-  password       String           @db.VarChar(255)
+  password       String?           @db.VarChar(255)
   name           String           @db.VarChar(100)
   nickname       String?          @db.VarChar(50)
   birth          DateTime?        @db.Date

@@ -1,6 +1,7 @@
 // src/controllers/user.controller.js
 //07에는 기존 res.json을 success, error로 통일할 수 있게 수정함.
 import express from "express";
+import { isLogin } from "../middlewares/auth.middleware.js";
 import { StatusCodes } from "http-status-codes";
 import { prisma } from "../db.config.js";
 import {
@@ -230,7 +231,7 @@ router.get("/users/:userId", async (req, res, next) => {
  *               success: null
  */
 
-router.post("/users/:userId/preferences", async (req, res, next) => {
+router.post("/users/:userId/preferences",isLogin, async (req, res, next) => { //선호 카테고리 등록은 로그인한 사용자만!
   try {
     await setPreference(Number(req.params.userId), Number(req.body.foodCategoryId));
     res.status(StatusCodes.CREATED).success({
@@ -304,6 +305,30 @@ router.get("/users/:userId/preferences", async (req, res, next) => {
     }
 
     res.status(StatusCodes.OK).success(preferences);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// 로그인한 유저가 자신의 정보 수정 하는 api를 생성! 
+router.patch("/users/me", isLogin, async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const { nickname, phone_number, birth } = req.body;
+
+    const updated = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        nickname,
+        phone_number,
+        birth: birth ? new Date(birth) : undefined,
+      },
+    });
+
+    return res.success({
+      message: "내 정보가 성공적으로 수정되었습니다.",
+      user: updated,
+    });
   } catch (err) {
     next(err);
   }

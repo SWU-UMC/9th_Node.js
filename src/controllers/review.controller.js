@@ -2,6 +2,7 @@
 import express from "express";
 import axios from "axios"; // 외부 API (현재 미사용)
 import { prisma } from "../db.config.js"; 
+import { isLogin } from "../middlewares/auth.middleware.js";
 import { findReviewsByUserId, listStoreReviews } from "../repositories/review.repository.js"; // ✅ Repository import
 import { ReviewCreationError, ReviewNotFoundError } from "../errors.js"; //에러 관리
 const router = express.Router();
@@ -92,7 +93,7 @@ const router = express.Router();
  *               success: null
  */
 
-router.post("/review", async (req, res,next) => {
+router.post("/review", isLogin,async (req, res,next) => { //리부작성은 로그인한 사용자만 가능해야함!
   const { mission_id, restaurant_id, user_id, content, rating, photo, restaurant_name } = req.body;
 
   try {
