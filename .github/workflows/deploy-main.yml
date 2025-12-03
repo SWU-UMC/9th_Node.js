@@ -3,7 +3,7 @@ name: deploy-main
 on:
   push:
     branches:
-      - 소리/main
+      - "소리/main"
   workflow_dispatch:
 
 jobs:
@@ -16,13 +16,13 @@ jobs:
       - name: Configure SSH
         run: |
           mkdir -p ~/.ssh
-          echo "$EC2_SSH_KEY" > ~/.ssh/id_rsa
+          echo "$EC2_SSH_KEY_SORI" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
 
           # 접속 별명 설정
           cat >>~/.ssh/config <<END
           Host umc_EC2
-            HostName $EC2_HOST
+            HostName $EC2_HOST_SORI
             User $EC2_USER
             IdentityFile ~/.ssh/id_rsa
             StrictHostKeyChecking no
@@ -30,8 +30,8 @@ jobs:
 
         env:
           EC2_USER: ubuntu
-          EC2_HOST: ${{ secrets.EC2_HOST }}
-          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+          EC2_HOST_SORI: ${{ secrets.EC2_HOST_SORI }}
+          EC2_SSH_KEY_SORI: ${{ secrets.EC2_SSH_KEY_SORI }}
 
       - name: Copy Workspace
         run: |
