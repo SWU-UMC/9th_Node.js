@@ -93,3 +93,12 @@ export class DuplicateStoreError extends Error {
         this.data = data;
     }
 }
+
+export class ForbiddenError extends Error {
+  constructor(reason = "접근 권한이 없습니다.", data = null) {
+    super(reason);
+    this.statusCode = 403;
+    this.errorCode = "AUTH003";
+    this.data = data;
+  }
+}

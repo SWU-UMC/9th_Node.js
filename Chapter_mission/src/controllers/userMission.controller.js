@@ -1,5 +1,6 @@
 // src/controllers/userMission.controller.js
 import { StatusCodes } from "http-status-codes";
+import { bodyToUserMission } from "../dtos/userMission.dto.js";
 import {
   challengeMission,
   listActiveMissions,
@@ -11,111 +12,27 @@ export const handleChallengeMission = async (req, res, next) => {
   /*
     #swagger.tags = ['UserMissions']
     #swagger.summary = '미션 도전'
-    #swagger.description = '사용자가 특정 미션(mission_id)에 도전합니다.'
+    #swagger.description = '로그인한 사용자가 특정 미션(mission_id)에 도전합니다.'
 
     #swagger.parameters['mission_id'] = {
       in: 'path',
       required: true,
-      schema: {
-        type: 'integer'
-      },
+      schema: { type: 'integer' },
       description: '도전할 미션 ID'
     }
 
-    #swagger.requestBody = {
-      required: true,
-      content: {
-        "application/json": {
-          schema: {
-            type: "object",
-            properties: {
-              user_id: { type: "integer" }
-            },
-            required: ["user_id"],
-            example: {
-              user_id: 1
-            }
-          }
-        }
-      }
-    }
-
-    #swagger.responses[201] = {
-      description: '미션 도전 성공',
-      content: {
-        "application/json": {
-          schema: {
-            $ref: '#/components/schemas/SuccessResponse'
-          },
-          example: {
-            resultType: "SUCCESS",
-            error: null,
-            success: {
-              id: 10,
-              userId: 1,
-              missionId: 3,
-              status: "IN_PROGRESS",
-              createdAt: "2025-01-15T12:00:00.000Z",
-              updatedAt: "2025-01-15T12:00:00.000Z"
-            }
-          }
-        }
-      }
-    }
-
-    #swagger.responses[409] = {
-      description: '이미 도전 중인 미션인 경우',
-      content: {
-        "application/json": {
-          schema: {
-            $ref: '#/components/schemas/ErrorResponse'
-          },
-          example: {
-            resultType: "FAIL",
-            error: {
-              errorCode: "U003",
-              reason: "이미 도전 중인 미션입니다.",
-              data: { missionId: 3 }
-            },
-            success: null
-          }
-        }
-      }
-    }
-
-    #swagger.responses[500] = {
-      description: '서버 내부 오류',
-      content: {
-        "application/json": {
-          schema: {
-            $ref: '#/components/schemas/ErrorResponse'
-          },
-          example: {
-            resultType: "FAIL",
-            error: {
-              errorCode: "unknown",
-              reason: "서버 내부 오류가 발생했습니다.",
-              data: null
-            },
-            success: null
-          }
-        }
-      }
-    }
+    // user_id를 받지 않기 때문에 body 없음
   */
 
-  const missionId = Number(req.params.mission_id);
-  const userId = req.user.id; // 로그인한 사용자
-
-  const data = {
-    userId,
-    missionId,
-  };
-
-  console.log("미션 도전 요청:", { missionId, userId });
-
   try {
-    const challenge = await challengeMission(data);
+    const missionId = Number(req.params.mission_id);
+    const userId = req.user.id; // JWT에서 온 아이디
+
+    // DTO에서 검증 + 데이터 정제
+    const dto = bodyToUserMission(Number(userId), missionId);
+
+    const challenge = await challengeMission(dto);
+
     res.status(StatusCodes.CREATED).success(challenge);
   } catch (error) {
     next(error);
@@ -126,17 +43,10 @@ export const handleChallengeMission = async (req, res, next) => {
 export const handleListActiveMissions = async (req, res, next) => {
   /*
     #swagger.tags = ['UserMissions']
-    #swagger.summary = '진행 중인 미션 목록 조회'
-    #swagger.description = '특정 사용자(user_id)가 현재 진행 중인 미션 목록을 조회합니다.'
+    #swagger.summary = '내가 진행 중인 미션 목록 조회'
+    #swagger.description = '로그인한 사용자가 현재 진행 중인 미션 목록을 조회합니다.'
 
-    #swagger.parameters['user_id'] = {
-      in: 'path',
-      required: true,
-      schema: {
-        type: 'integer'
-      },
-      description: '사용자 ID'
-    }
+    #swagger.security = [{ bearerAuth: [] }]
 
     #swagger.responses[200] = {
       description: '진행 중인 미션 목록 조회 성공',
@@ -194,9 +104,8 @@ export const handleListActiveMissions = async (req, res, next) => {
     }
   */
 
-  const userId = req.user.id;
-
   try {
+    const userId = Number(req.user.id);
     const result = await listActiveMissions(userId);
 
     res.status(StatusCodes.OK).success(result);
@@ -239,6 +148,24 @@ export const handleCompleteMission = async (req, res, next) => {
               createdAt: "2025-01-15T12:00:00.000Z",
               updatedAt: "2025-01-16T10:00:00.000Z"
             }
+          }
+        }
+      }
+    }
+    
+    #swagger.responses[403] = {
+      description: '다른 사용자의 미션을 완료 처리하려는 경우',
+      content: {
+        "application/json": {
+          schema: { $ref: '#/components/schemas/ErrorResponse' },
+          example: {
+            resultType: "FAIL",
+            error: {
+              errorCode: "AUTH003",
+              reason: "본인의 미션만 완료할 수 있습니다.",
+              data: { userMissionId: 10 }
+            },
+            success: null
           }
         }
       }
@@ -305,12 +232,12 @@ export const handleCompleteMission = async (req, res, next) => {
     }
   */
 
-  const userId = req.user.id;
-  const userMissionId = parseInt(req.params.user_mission_id);
-
-  console.log("미션 완료 요청:", userMissionId);
-
   try {
+    const userId = req.user.id;
+    const userMissionId = Number(req.params.user_mission_id);
+
+    console.log("미션 완료 요청:", { userId, userMissionId });
+
     const result = await completeUserMission(userId, userMissionId);
     res.status(StatusCodes.OK).success(result);
   } catch (error) {

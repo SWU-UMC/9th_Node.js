@@ -15,7 +15,7 @@ const router = Router();
 router.post("/users/signup", handleUserSignUp);
 router.get("/users/me", authMiddleware, handleGetMe);
 router.patch("/users/me", authMiddleware, handleUpdateMe);
-router.get("users/:user_id/reviews", handleListUserReviews);
-router.get("/users/:user_id/missions", handleListActiveMissions);
+router.get("/users/:user_id/reviews", handleListUserReviews);
+router.get("/users/me/missions", authMiddleware, handleListActiveMissions);
 
 export default router;

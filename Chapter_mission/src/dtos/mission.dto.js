@@ -4,7 +4,11 @@ import { createBadRequestError } from "../error.js";
 
 export const bodyToMission = (body, storeId) => {
   // storeId 검증
-  if (!storeId || typeof storeId !== "number" || storeId <= 0) {
+  if (
+    typeof storeId !== "number" ||
+    !Number.isInteger(storeId) ||
+    storeId <= 0
+  ) {
     throw createBadRequestError("유효한 storeId가 필요합니다.", { storeId });
   }
 
@@ -28,9 +32,10 @@ export const bodyToMission = (body, storeId) => {
   if (
     body.point === undefined ||
     typeof body.point !== "number" ||
+    !Number.isInteger(body.point) ||
     body.point < 0
   ) {
-    throw createBadRequestError("point는 0 이상의 숫자여야 합니다.", {
+    throw createBadRequestError("point는 0 이상의 정수여야 합니다.", {
       point: body.point,
     });
   }

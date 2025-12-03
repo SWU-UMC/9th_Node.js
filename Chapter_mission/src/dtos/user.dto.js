@@ -1,6 +1,6 @@
 // 회원가입 요청 Body -> DB 저장용 데이터 변환 + 검증
 export const bodyToUser = (body) => {
-  // 필수값 검증
+  // 필수값 검증: email, name, password, nickname
   if (!body.email || typeof body.email !== "string") {
     throw new Error("email은 필수이며 문자열이어야 합니다.");
   }
@@ -9,15 +9,24 @@ export const bodyToUser = (body) => {
     throw new Error("password는 필수이며 문자열이어야 합니다.");
   }
 
-  if (!body.nickname || typeof body.nickname !== "string") {
-    throw new Error("nickname은 필수이며 문자열이어야 합니다.");
+  if (!body.name || typeof body.name !== "string" || body.name.trim().length === 0) {
+    throw new Error("name은 필수이며 비어있지 않은 문자열이어야 합니다.");
   }
 
-  if (!body.phoneNumber || typeof body.phoneNumber !== "string") {
-    throw new Error("phoneNumber는 필수이며 문자열이어야 합니다.");
+  if (!body.nickname || typeof body.nickname !== "string" || body.nickname.trim().length === 0) {
+    throw new Error("nickname은 필수이며 비어있지 않은 문자열이어야 합니다.");
   }
 
   // 선택값 검증
+
+  // phoneNumber: 선택, 있으면 문자열 + 공백만 안됨
+  if (body.phoneNumber !== undefined && body.phoneNumber !== null) {
+    if (typeof body.phoneNumber !== "string" || body.phoneNumber.trim().length === 0) {
+      throw new Error("phoneNumber는 비어있지 않은 문자열이어야 합니다.");
+    }
+  }
+
+  // birth: 선택, 유효한 날짜인지 확인
   if (body.birth !== undefined && body.birth !== null) {
     const birthDate = new Date(body.birth);
     if (Number.isNaN(birthDate.getTime())) {
@@ -25,22 +34,28 @@ export const bodyToUser = (body) => {
     }
   }
 
-  if (body.gender !== undefined && !["MALE", "FEMALE", "UNKNOWN"].includes(body.gender)) {
-    throw new Error("gender는 MALE, FEMALE, UNKNOWN 중 하나여야 합니다.");
+  // gender: 선택, enum 값 체크 (Prisma와 통일)
+  if (body.gender !== undefined && !["MALE", "FEMALE", "OTHER", "UNKNOWN"].includes(body.gender)) {
+    throw new Error("gender는 MALE, FEMALE, OTHER, UNKNOWN 중 하나여야 합니다.");
   }
 
+  // profileImage: 선택, 있으면 문자열
   if (body.profileImage !== undefined && typeof body.profileImage !== "string") {
     throw new Error("profileImage는 문자열(URL)이어야 합니다.");
   }
 
+  // DB에 넣을 형태로 변환
   return {
     email: body.email,
-    password: body.password, // 암호화는 service에서 처리
-    name: body.name || null,
-    nickname: body.nickname,
+    password: body.password, // 해시는 컨트롤러에서 처리
+    name: body.name.trim(),
+    nickname: body.nickname.trim(),
     gender: body.gender || "UNKNOWN",
     birth: body.birth ? new Date(body.birth) : null,
-    phoneNumber: body.phoneNumber,
+    phoneNumber:
+      body.phoneNumber !== undefined && body.phoneNumber !== null
+        ? body.phoneNumber.trim()
+        : null,
     profileImage: body.profileImage || null,
   };
 };

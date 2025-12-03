@@ -8,7 +8,7 @@ export const handleUserSignUp = async (req, res, next) => {
   /*
     #swagger.tags = ['Users']
     #swagger.summary = '회원가입'
-    #swagger.description = '이메일, 비밀번호, 닉네임으로 회원을 등록합니다.'
+    #swagger.description = '이메일, 이름, 비밀번호, 닉네임으로 회원을 등록합니다.'
 
     #swagger.requestBody = {
       required: true,
@@ -17,21 +17,42 @@ export const handleUserSignUp = async (req, res, next) => {
           schema: {
             type: "object",
             properties: {
-              email: { type: "string", format: "email" },
-              password: { type: "string" },
-              name: { type: "string" }
+              email: { type: "string", format: "email", description: "로그인에 사용할 이메일" },
+              name: { type: "string", description: "실명" },
+              password: { type: "string", description: "로그인 비밀번호" },
+              nickname: { type: "string", description: "닉네임" },
+              phoneNumber: { type: "string", description: "전화번호(선택)" },
+              gender: {
+                type: "string",
+                description: "성별(선택)",
+                enum: ["MALE", "FEMALE", "OTHER", "UNKNOWN"]
+              },
+              birth: {
+                type: "string",
+                format: "date",
+                description: "생년월일 (YYYY-MM-DD, 선택)"
+              },
+              profileImage: {
+                type: "string",
+                description: "프로필 이미지 URL (선택)"
+              }
             },
-            required: ["email", "password", "name"],
+            required: ["email", "name", "password", "nickname"],
             example: {
               email: "test@example.com",
+              name: "김예원",
               password: "qwer1234!",
-              name: "워니"
+              nickname: "워니",
+              phoneNumber: "010-1234-5678",
+              gender: "FEMALE",
+              birth: "2000-01-01",
+              profileImage: "https://example.com/profile.png"
             }
           }
         }
       }
     }
-    
+
     #swagger.responses[201] = {
       description: '회원가입 성공',
       content: {

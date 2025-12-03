@@ -3,7 +3,11 @@
 import { createBadRequestError } from "../error.js";
 
 export const bodyToStore = (body, regionId) => {
-  if (!regionId || typeof regionId !== "number" || regionId <= 0) {
+  if (
+    typeof regionId !== "number" ||
+    !Number.isInteger(regionId) ||
+    regionId <= 0
+  ) {
     throw createBadRequestError("유효한 regionId가 필요합니다.", { regionId });
   }
 
@@ -11,6 +15,7 @@ export const bodyToStore = (body, regionId) => {
   if (
     body.categoryId === undefined ||
     typeof body.categoryId !== "number" ||
+    !Number.isInteger(body.categoryId) ||
     body.categoryId <= 0
   ) {
     throw createBadRequestError("categoryId는 1 이상의 정수여야 합니다.", {

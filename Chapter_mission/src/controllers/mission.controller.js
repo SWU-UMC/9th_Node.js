@@ -13,7 +13,9 @@ export const handleAddMission = async (req, res, next) => {
     #swagger.parameters['store_id'] = {
       in: 'path',
       required: true,
-      type: 'integer',
+      schema: {
+        type: 'integer'
+      },
       description: '미션을 등록할 가게의 ID'
     }
 
@@ -24,12 +26,25 @@ export const handleAddMission = async (req, res, next) => {
           schema: {
             type: "object",
             properties: {
-              title: { type: "string" },
-              description: { type: "string" },
-              point: { type: "integer" },
-              deadline: { type: "string", format: "date-time" }
+              title: { 
+                type: "string",
+                description: "미션 제목(필수)"
+              },
+              description: { 
+                type: "string",
+                description: "미션 설명(선택)"
+              },
+              point: { 
+                type: "integer",
+                description: "미션 완료 시 지급할 포인트(0 이상 정수)"
+              },
+              deadline: { 
+                type: "string", 
+                format: "date-time",
+                description: "마감 기한(선택, ISO 8601 형식)"
+              }
             },
-            required: ["title", "description", "point"],
+            required: ["title", "point"],
             example: {
               title: "인증샷과 함께 리뷰 남기기",
               description: "가게에서 음식 사진과 함께 리뷰를 작성하면 포인트 지급",

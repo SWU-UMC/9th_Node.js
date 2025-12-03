@@ -149,12 +149,20 @@ export const handleAddStore = async (req, res, next) => {
     }
   */
 
-  const { regionId } = req.params;
+  // path param에서 region_id 가져와서 숫자로 변환
+  const regionIdParam = req.params.region_id;
+  const regionIdNum = Number(regionIdParam);
 
-  console.log("가게 등록 요청:", req.body);
+  console.log("가게 등록 요청:", {
+    regionIdParam,
+    body: req.body,
+  });
 
   try {
-    const storeData = bodyToStore(req.body, regionId);
+    // DTO에 number 타입 regionId 넘김
+    const storeData = bodyToStore(req.body, regionIdNum);
+
+    // 서비스 레이어 호출
     const store = await createStore(storeData);
 
     res.status(StatusCodes.CREATED).success(store);

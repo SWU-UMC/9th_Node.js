@@ -1,13 +1,5 @@
 // src/dtos/review.dto.js
-
-// 공통 에러 헬퍼
-const createBadRequestError = (message, data = null) => {
-  const err = new Error(message);
-  err.statusCode = 400;
-  err.errorCode = "unknown"; // 필요시 변경
-  err.data = data;
-  return err;
-};
+import { createBadRequestError } from "../error.js";
 
 /**
  * 리뷰 생성용 DTO 변환 + 검증
