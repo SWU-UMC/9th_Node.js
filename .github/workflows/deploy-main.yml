@@ -3,7 +3,7 @@ name: deploy-main
 on:
   push:
     branches:
-      - "소리/main"
+      - "feature/mission-10/소리"
   workflow_dispatch:
 
 jobs:
