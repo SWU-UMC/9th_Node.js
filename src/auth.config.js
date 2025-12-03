@@ -39,11 +39,11 @@ const googleVerify = async (profile) => {
         data: {
             email,
             name: profile.displayName,
-            gender: "추후 수정",
-            birth: new Date(1970, 0, 1),
-            address: "추후 수정",
-            detailAddress: "추후 수정",
-            phoneNumber: "추후 수정",
+            gender: null,
+            birth: null,
+            address: null,
+            detailAddress: null,
+            phoneNumber: null,
         },
     });
 

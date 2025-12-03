@@ -53,5 +53,6 @@ export const bodyToUserUpdate = (body) => {
     address: body.address || undefined,
     detailAddress: body.detailAddress || undefined,
     phoneNumber: body.phoneNumber || undefined,
+    preferences: body.preferences || [],
   };
 };

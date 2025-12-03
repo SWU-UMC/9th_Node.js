@@ -13,6 +13,7 @@ import {
   getAllUserMissions,
   updateUserInfo,
 } from "../repositories/user.repository.js";
+import { DuplicateUserEmailError } from "../error.js";
 
 export const userSignUp = async (data) => {
   const joinUserId = await addUser({

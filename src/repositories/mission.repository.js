@@ -40,7 +40,7 @@ export const getMissionById = async (missionId) => {
 
 // 사용자가 특정 미션에 도전 중인지 확인 (검증용)
 export const checkUserMissionExists = async (userId, missionId) => {
-  const existingMission = await prisma.user_mission.findUnique({
+  const existingMission = await prisma.userMission.findUnique({
     where: {
       userId_missionId: {
         userId: userId,
@@ -83,15 +83,20 @@ export const getUserMissionById = async (userMissionId) => {
   try {
     const userMission = await prisma.userMission.findUnique({
       where: { id: userMissionId },
-        include: {
-          mission: true, // 포인트 정보를 알기 위해
-          user: true,    // 유저 정보를 알기 위해
-        },
+      select: {
+        id: true,
+        status: true,
+        userId: true,    
+        missionId: true,
+        user: true,      
+        mission: true,   
+      },
     });
+
     return userMission;
+
   } catch (err) {
-    console.error(err);
-    throw new InternalServerError(`DB 오류가 발생했습니다: ${err.message}`);
+    throw new InternalServerError(`DB 오류가 발생했습니다: ${err.message}`, err);
   }
 };
 
