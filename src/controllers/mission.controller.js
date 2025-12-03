@@ -59,6 +59,7 @@ export const handleAddMission = async (req, res, next) => {
 export const handleChallengeMission = async (req, res, next) => {
   /*
     #swagger.summary = '미션 도전하기 API';
+    #swagger.security = [{ "bearerAuth": [] }]
     #swagger.parameters['missionId'] = { description: '미션 ID', type: 'number' };
     #swagger.requestBody = {
       required: true,
@@ -67,7 +68,6 @@ export const handleChallengeMission = async (req, res, next) => {
           schema: {
             type: "object",
             properties: {
-              userId: { type: "number", example: 1 }
             }
           }
         }
@@ -95,7 +95,12 @@ export const handleChallengeMission = async (req, res, next) => {
     };
   */
   console.log("미션 도전하기를 요청했습니다");
-  const challengeData = bodyToChallenge(req.body, req.params);
+  console.log("params (missionId):", req.params);
+  console.log("user (from jwt):", req.user); // 토큰 정보 확인용
+
+  // req.user.id를 DTO의 3번째 인자로 전달
+  const challengeData = bodyToChallenge(req.body, req.params, req.user.id);
+
   const newChallenge = await challengeMission(challengeData);
   res.status(StatusCodes.CREATED).success(newChallenge);
 };

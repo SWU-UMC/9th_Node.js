@@ -5,12 +5,15 @@ import morgan from "morgan";
 import cookieParser from "cookie-parser";
 import swaggerAutogen from "swagger-autogen";
 import swaggerUiExpress from "swagger-ui-express";
-
+import passport from "passport";
+import { googleStrategy, jwtStrategy } from "./auth.config.js";  
+import {prisma} from "./db.config.js";
 
 import { 
   handleUserSignUp,
   handleListUserReviews,
   handleListUserMissions,
+  handleUpdateMyInfo,
  } from "./controllers/user.controller.js";
 import {
   handleAddRestaurant,
@@ -24,6 +27,9 @@ import {
 } from "./controllers/mission.controller.js";
 
 dotenv.config();
+
+passport.use(googleStrategy);
+passport.use(jwtStrategy);
 
 const app = express();
 const port = process.env.PORT;
@@ -54,6 +60,7 @@ app.use(express.static("public")); // 정적 파일 접근
 app.use(express.json()); // request의 본문을 json으로 해석할 수 있도록 함 (JSON 형태의 요청 body를 파싱하기 위함)
 app.use(express.urlencoded({ extended: false })); // 단순 객체 문자열 형태로 본문 데이터 해석
 app.use(cookieParser());
+app.use(passport.initialize());
 
 app.use(
   "/docs",
@@ -86,6 +93,8 @@ app.get("/openapi.json", async (req, res, next) => {
   res.json(result ? result.data : null);
 });
 
+const isLogin = passport.authenticate("jwt", { session: false });
+
 // ...
 
 app.get("/", (req, res) => {
@@ -93,14 +102,44 @@ app.get("/", (req, res) => {
 });
 
 app.post("/api/v1/users/signup", handleUserSignUp);
-app.post("/api/v1/restaurants", handleAddRestaurant);
-app.post("/api/v1/restaurants/:restaurantId/reviews", handleAddReview);
-app.post("/api/v1/restaurants/:restaurantId/missions", handleAddMission);
-app.post("/api/v1/missions/:missionId/challenge", handleChallengeMission);
+app.post("/api/v1/restaurants", isLogin, handleAddRestaurant);
+app.post("/api/v1/restaurants/:restaurantId/reviews", isLogin, handleAddReview);
+app.post("/api/v1/restaurants/:restaurantId/missions",isLogin, handleAddMission);
+app.post("/api/v1/missions/:missionId/challenge", isLogin, handleChallengeMission);
 app.get("/api/v1/restaurants/:restaurantId/reviews", handleListRestaurantReviews);
 app.get("/api/v1/users/:userId/reviews", handleListUserReviews);
 app.get("/api/v1/users/:userId/missions", handleListUserMissions)
-app.patch("/api/v1/missions/:userMissionId/complete", handleCompleteMission);
+app.patch("/api/v1/missions/:userMissionId/complete", isLogin, handleCompleteMission);
+app.patch("/api/v1/users/me", isLogin, handleUpdateMyInfo);
+
+app.get("/oauth2/login/google", 
+  passport.authenticate("google", { session: false }
+  )
+);
+app.get("/oauth2/callback/google", 
+  passport.authenticate("google", { session: false, failureRedirect: "/login-failed" }),
+  (req, res) => {
+    const tokens = req.user;
+
+    res.status(200).json({
+      resultType: "SUCCESS",
+      error: null,
+      success: {
+        message: "Google 로그인 성공!",
+        tokens: tokens,
+      }
+    });
+      
+  }
+);
+
+
+app.get('/mypage', isLogin, (req, res) => {
+  res.status(200).success({
+    message: `인증 성공! ${req.user.name}님의 마이페이지입니다.`,
+    user: req.user,
+  });
+});
 
 /**
  * 전역 오류를 처리하기 위한 미들웨어

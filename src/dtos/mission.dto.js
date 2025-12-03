@@ -19,9 +19,9 @@ export const responseFromMission = (data) => {
 };
 
 // 미션 도전하기 요청 DTO
-export const bodyToChallenge = (body, params) => {
+export const bodyToChallenge = (body, params, userId) => {
   return {
-    userId: body.userId,
+    userId: userId,
     missionId: params.missionId, 
   };
 };

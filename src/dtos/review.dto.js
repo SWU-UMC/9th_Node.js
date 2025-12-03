@@ -1,10 +1,10 @@
-export const bodyToReview = (body, params) => {
+export const bodyToReview = (body, params, userId) => {
   return {
-    userId: parseInt(body.userId), 
-    restaurantId: parseInt(params.restaurantId), 
+    userId: userId, // 컨트롤러에서 넘겨준 토큰 ID 사용
 
+    restaurantId: parseInt(params.restaurantId),
     content: body.content,
-    rating: body.rating, 
+    rating: body.rating,
   };
 };
 
