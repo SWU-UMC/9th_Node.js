@@ -33,20 +33,12 @@ export const addMissionToStore = async (rawBody, storeIdFromPath) => {
 };
 
 // 미션 도전
-export const challengeMission = async (missionIdFromPath) => {
+export const challengeMission = async (userIdFromAuth, missionIdFromPath) => {
   const missionId = ensureNumber(missionIdFromPath, "missionId");
-
   const mission = await getMissionById(missionId);
   if (!mission) throw new MissionNotFoundError(missionId);
 
-  // 현재 인증 미구현이라 첫 사용자로 대체
-  const userId = await getFirstUserId();
-  if (!userId) {
-    throw new UserNotFoundError(
-      undefined,
-      "사용자가 없습니다. 먼저 회원가입을 진행하세요."
-    );
-  }
+  const userId = ensureNumber(userIdFromAuth, "userId");
 
   const existing = await findUserMission(userId, missionId);
   if (existing) {

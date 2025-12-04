@@ -252,7 +252,7 @@ export const handleListStoreReviews = async (req, res, next) => {
     }
   */
   try {
-    const storeId = req.params.storeId;
+    const storeId = Number(req.params.storeId);
     const cursor =
       typeof req.query.cursor === "string" ? Number(req.query.cursor) : 0;
 
@@ -405,7 +405,7 @@ export const handleListStoreMissions = async (req, res, next) => {
     }
   */
   try {
-    const storeId = req.params.storeId;
+    const storeId = Number(req.params.storeId);
     const cursor =
       typeof req.query.cursor === "string" ? Number(req.query.cursor) : 0;
     const take =

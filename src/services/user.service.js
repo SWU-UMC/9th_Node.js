@@ -7,8 +7,8 @@ import {
   setPreference,
 } from "../repositories/user.repository.js";
 import { prisma } from "../db.config.js";
-import { DuplicateUserEmailError } from "../errors.js";
-import { ensureString } from "../utils/validation.js";
+import { DuplicateUserEmailError, ValidationError } from "../errors.js";
+import { ensureNumber, ensureString } from "../utils/validation.js";
 
 export const userSignUp = async (data) => {
   // 비밀번호 검증
@@ -67,4 +67,35 @@ export const userSignUp = async (data) => {
   const preferences = await getUserPreferencesByUserId(userId);
 
   return responseFromUser({ user, preferences });
+};
+
+export const updateMyProfile = async (userIdFromAuth, body) => {
+  const userId = ensureNumber(userIdFromAuth, "userId");
+
+  // 업데이트 가능한 필드만 추출 (부분 수정 허용)
+  const data = {};
+  if (body.name !== undefined) data.name = body.name;
+  if (body.gender !== undefined) {
+    data.gender = body.gender === "여성" ? 0 : 1;
+  }
+  if (body.birth !== undefined) {
+    data.birth = new Date(body.birth);
+  }
+  if (body.address !== undefined) data.address = body.address;
+  if (body.specAddress !== undefined) data.specAddress = body.specAddress;
+
+  const updated = await prisma.user.update({
+    where: { id: BigInt(userId) },
+    data,
+  });
+
+  return {
+    id: Number(updated.id),
+    email: updated.email,
+    name: updated.name,
+    gender: updated.gender,
+    birth: updated.birth,
+    address: updated.address,
+    specAddress: updated.specAddress,
+  };
 };
