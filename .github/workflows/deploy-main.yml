@@ -1,4 +1,4 @@
-name: deploy-main-zhou
+name: deploy-main
 
 on:
   push:
