@@ -1,9 +1,9 @@
-name: deploy-main
+name: deploy-main-zhou
 
 on:
   push:
     branches:
-      - 조우/main
+      - feature/mission-10/조우
   workflow_dispatch:
 
 jobs:
