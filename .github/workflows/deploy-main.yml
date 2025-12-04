@@ -13,6 +13,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Check prisma has changes
+        uses: dorny/paths-filter@v3
+        id: paths-filter
+        with:
+          filters: |
+            prisma: ["prisma/**"]
+
       - name: Configure SSH
         run: |
           mkdir -p ~/.ssh
@@ -32,14 +39,6 @@ jobs:
           EC2_HOST: ${{ secrets.EC2_HOST }}
           EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
 
-      - name: SSH Connection Test
-        run: |
-          ssh -vvv umc9thworkbook exit
-        env:
-          EC2_USER: ubuntu
-          EC2_HOST: ${{ secrets.EC2_HOST }}
-          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
-
       - name: Copy Workspace
         run: |
           ssh umc9thworkbook 'sudo mkdir -p /opt/app'
@@ -49,6 +48,12 @@ jobs:
       - name: Install dependencies
         run: |
           ssh umc9thworkbook 'npm install --prefix /opt/app/'
+          ssh umc9thworkbook 'cd /opt/app; npx prisma generate'
+
+      - name: Apply prisma migrations
+        if: steps.paths-filter.outputs.prisma == 'true'
+        run: |
+          ssh umc9thworkbook 'cd /opt/app; npx prisma migrate deploy'
 
       - name: Copy systemd service file
         run: |
@@ -59,7 +64,7 @@ jobs:
 
             [Service]
             User=ubuntu
-            ExecStart=/usr/bin/npm run dev --prefix /opt/app/
+            ExecStart=/usr/bin/npm run start --prefix /opt/app/
             Restart=always
 
             [Install]
