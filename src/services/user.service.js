@@ -2,6 +2,7 @@ import {
   responseFromUser,
   responseFromReviews,
   responseFromUserMissions,
+  bodyToUserUpdate
  } from '../dtos/user.dto.js';
 import {
   addUser,
@@ -10,7 +11,9 @@ import {
   setPreference,
   getAllUserReviews,
   getAllUserMissions,
+  updateUserInfo,
 } from "../repositories/user.repository.js";
+import { DuplicateUserEmailError } from "../error.js";
 
 export const userSignUp = async (data) => {
   const joinUserId = await addUser({
@@ -46,4 +49,15 @@ export const listUserMissions = async (userId, cursor) => {
   console.log(`[Service] Got userId: ${userId}, Got cursor: ${cursor}`);
   const missions = await getAllUserMissions(userId, cursor);
   return responseFromUserMissions(missions);
+};
+
+// 사용자 정보 수정 서비스
+export const updateMyInfo = async (userId, body) => {
+  const updateData = bodyToUserUpdate(body);
+  
+  const updatedUser = await updateUserInfo(userId, updateData);
+  
+  const preferences = await getUserPreferencesByUserId(userId);
+  
+  return responseFromUser({ user: updatedUser, preferences });
 };

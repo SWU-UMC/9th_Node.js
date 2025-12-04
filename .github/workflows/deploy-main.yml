@@ -1,0 +1,72 @@
+name: deploy-main
+
+on:
+  push:
+    branches:
+      - "소리/main"
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Prisma 폴더 변경 감지
+      - name: Check prisma has changes
+        uses: dorny/paths-filter@v3
+        id: paths-filter
+        with:
+          filters: |
+            prisma: ["prisma/**"]
+
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "$EC2_SSH_KEY_SORI" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          
+          # 접속 별명 설정
+          cat >>~/.ssh/config <<END
+          Host umc_EC2
+            HostName $EC2_HOST_SORI
+            User $EC2_USER
+            IdentityFile ~/.ssh/id_rsa
+            StrictHostKeyChecking no
+          END
+        env:
+          EC2_USER: ubuntu
+          EC2_HOST_SORI: ${{ secrets.EC2_HOST_SORI }}
+          EC2_SSH_KEY_SORI: ${{ secrets.EC2_SSH_KEY_SORI }}
+
+      - name: Copy Workspace
+        run: |
+          ssh umc_EC2 'sudo mkdir -p /opt/app'
+          ssh umc_EC2 'sudo chown ubuntu:ubuntu /opt/app'
+          scp -r ./[!.]* umc_EC2:/opt/app
+
+      - name: Install dependencies
+        run: |
+          ssh umc_EC2 'npm install --prefix /opt/app/'
+          ssh umc_EC2 'cd /opt/app && npx prisma generate'
+
+      # Prisma 변경 사항이 있을 때만 마이그레이션 실행
+      - name: Run Prisma Migrate
+        if: steps.paths-filter.outputs.prisma == 'true'
+        run: |
+          ssh umc_EC2 'cd /opt/app && npx prisma migrate deploy'
+
+      # [중요] 들여쓰기 오류 방지를 위해 printf 사용
+      - name: Copy systemd service file
+        run: |
+          ssh umc_EC2 'printf "[Unit]\nDescription=UMC 9th Project\nAfter=network.target\n\n[Service]\nUser=ubuntu\nWorkingDirectory=/opt/app\nExecStart=/usr/bin/npm run start\nRestart=always\n\n[Install]\nWantedBy=multi-user.target\n" | sudo tee /etc/systemd/system/app.service'
+
+      - name: Enable systemd service
+        run: |
+          ssh umc_EC2 'sudo systemctl daemon-reload'
+          ssh umc_EC2 'sudo systemctl enable app'
+
+      - name: Restart systemd service
+        run: |
+          ssh umc_EC2 'sudo systemctl restart app'

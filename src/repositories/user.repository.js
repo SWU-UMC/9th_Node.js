@@ -77,3 +77,19 @@ export const getAllUserMissions = async (userId, cursor) => {
   });
   return missions;
 };
+
+// 유저 정보 수정
+export const updateUserInfo = async (userId, data) => {
+  const updatedUser = await prisma.user.update({
+    where: { id: userId },
+    data: {
+      name: data.name,
+      gender: data.gender,
+      birth: data.birth,
+      address: data.address,
+      detailAddress: data.detailAddress,
+      phoneNumber: data.phoneNumber,
+    },
+  });
+  return updatedUser;
+};
