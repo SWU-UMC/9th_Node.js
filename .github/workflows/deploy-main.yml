@@ -68,7 +68,6 @@ jobs:
             [Service]
             User=ubuntu
             ExecStart=/usr/bin/npm run start --prefix /opt/app/
-            ExecStart=/usr/bin/npm run dev --prefix /opt/app/
             Restart=always
 
             [Install]
