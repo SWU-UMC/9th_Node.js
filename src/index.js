@@ -5,13 +5,19 @@ import cookieParser from 'cookie-parser';
 import morgan from "morgan";
 import swaggerAutogen from "swagger-autogen";
 import swaggerUiExpress from "swagger-ui-express";
+import passport from "passport";
+import { googleStrategy, jwtStrategy  } from "./auth.config.js";
+import { prisma } from "./db.config.js";
 import { addMissionController } from "./controllers/mission.controller.js";
-import { handleUserSignUp } from "./controllers/user.controller.js";
+import { handleUserSignUp, handleUserUpdateInfo } from "./controllers/user.controller.js";
 import { regionForRestaurant, handleListRestaurantReviews, getMissionsByRestaurantController } from "./controllers/restaurant.controller.js";
 import { addReviewController, handleUserReviewList  } from "./controllers/review.controller.js";
 import { startMissionController, handleOngoingMissions } from "./controllers/user_mission.controller.js";
 
 dotenv.config();
+
+passport.use(googleStrategy);
+passport.use(jwtStrategy); 
 
 const app = express();
 const port = process.env.PORT;
@@ -23,6 +29,8 @@ app.use(express.json()); // request의 본문을 json으로 해석할 수 있도
 app.use(express.urlencoded({ extended: false })); // 단순 객체 문자열 형태로 본문 데이터 해석
 
 app.use(express.static("public")); // 정적 파일 접근
+
+app.use(passport.initialize());
 
 /**
  * 공통 응답을 사용할 수 있는 헬퍼 함수 등록
@@ -51,6 +59,31 @@ app.use(
       url: "/openapi.json",
     },
   })
+);
+
+app.get("/oauth2/login/google", 
+  passport.authenticate("google", { 
+    session: false 
+  })
+);
+app.get(
+  "/oauth2/callback/google",
+  passport.authenticate("google", {
+	  session: false,
+    failureRedirect: "/login-failed",
+  }),
+  (req, res) => {
+    const tokens = req.user; 
+
+    res.status(200).json({
+      resultType: "SUCCESS",
+      error: null,
+      success: {
+          message: "Google 로그인 성공!",
+          tokens: tokens, // { "accessToken": "...", "refreshToken": "..." }
+      }
+    });
+  }
 );
 
 app.get("/openapi.json", async (req, res, next) => {
@@ -111,19 +144,32 @@ app.get('/getcookie', (req, res) => {
     }
 });
 
+const isLogin = passport.authenticate('jwt', { session: false });
+
+
 app.post("/api/users/signup", handleUserSignUp);
 app.post("/api/restaurants", regionForRestaurant);
 app.post("/api/restaurants/:restaurant_id/missions", addMissionController);
-app.post("/api/restaurants/:restaurant_id/reviews", addReviewController);
+app.post("/api/restaurants/:restaurant_id/reviews", isLogin, addReviewController);
 app.post(
-  "/api/missions/:mission_id/start",
+  "/api/missions/:mission_id/start", isLogin,
   startMissionController
 );
 
+
+app.get('/mypage', isLogin, (req, res) => {
+  res.status(200).success({
+    message: `인증 성공! ${req.user.name}님의 마이페이지입니다.`,
+    user: req.user,
+  });
+});
+
 app.get("/api/restaurants/:restaurant_id/reviews", handleListRestaurantReviews);
-app.get("/api/users/:user_id/reviews", handleUserReviewList);
+app.get("/api/users/:user_id/reviews", isLogin, handleUserReviewList);
 app.get("/api/restaurants/:restaurant_id/missions", getMissionsByRestaurantController);
-app.get("/api/users/:user_id/ongoing-missions", handleOngoingMissions);
+app.get("/api/users/:user_id/ongoing-missions", isLogin, handleOngoingMissions);
+app.patch("/api/users/me", isLogin, handleUserUpdateInfo);
+
 
 /**
  * 전역 오류를 처리하기 위한 미들웨어

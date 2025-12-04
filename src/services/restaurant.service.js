@@ -17,10 +17,10 @@ export const restaurantAdd = async (body) => {
 //특정 레스토랑의 리뷰 조회
 export const listRestaurantReviews = async (restaurant_id, cursor) => {
   const { reviews, nextCursor } = await getAllRestaurantReviews(restaurant_id, cursor);
+  const missionsDto = result.missions.map((m) => responseFromMission(m));
   return {
-    reviews: reviews.map(responseFromReview),
-    nextCursor: nextCursor
-  };
+        missions: missionsDto,
+    };
 };
 
 //특정 레스토링 미션 조회

@@ -11,6 +11,7 @@ export const bodyToUser = (body) => {
     detailAddress: body.detailAddress || "", //선택 
     phoneNumber: body.phoneNumber,//필수
     preferences: body.preferences,// 필수 
+    token: token,
   };
 };
 

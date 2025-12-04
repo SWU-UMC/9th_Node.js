@@ -67,10 +67,11 @@ export const addReviewController = async (req, res, next) => {
       const review = await reviewAdd(
       Number(user_id), 
       Number(mission_id),  
+      Number(restaurant_id),  
       req.body // content, rating, photo 등이 담긴 객체
     );
 
-        res.status(StatusCodes.CREATED(201)).success(review);
+        res.status(StatusCodes.CREATED).success(review);
   } catch (error) {
     next(error);
     }
