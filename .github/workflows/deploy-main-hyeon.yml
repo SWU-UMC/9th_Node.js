@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - 현/main
+      - feature/mission-10/현
   workflow_dispatch:
 
 jobs:
