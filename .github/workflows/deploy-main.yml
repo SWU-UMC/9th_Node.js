@@ -32,6 +32,14 @@ jobs:
           EC2_HOST: ${{ secrets.EC2_HOST }}
           EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
 
+      - name: SSH Connection Test
+        run: |
+          ssh -vvv umc9thworkbook exit
+        env:
+          EC2_USER: ubuntu
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+
       - name: Copy Workspace
         run: |
           ssh umc9thworkbook 'sudo mkdir -p /opt/app'
