@@ -36,7 +36,11 @@ jobs:
         run: |
           ssh umc9thworkbook 'sudo mkdir -p /opt/app'
           ssh umc9thworkbook 'sudo chown ubuntu:ubuntu /opt/app'
-          scp -r ./[!.]* umc9thworkbook:/opt/app
+          rsync -avz --delete \
+            --exclude ".env" \
+            --exclude "node_modules" \
+            --exclude ".git" \
+            ./Chapter_mission/ umc9thworkbook:/opt/app/
 
       - name: Install dependencies
         run: |
