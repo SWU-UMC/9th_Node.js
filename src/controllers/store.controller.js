@@ -67,25 +67,30 @@ import { NotFoundError } from '../errors.js';
  *                   type: string
  *                   example: "가게 추가 중 오류가 발생했습니다."
  */
-export const handleAddStore = async (req, res) => {
-    const { name, address, region } = req.body;
-
-    if (!name || !address || !region) {
-        return res.status(400).json({ message: '모든 가게 정보를 입력해야 합니다.' });
-    }
-
+export const handleAddStore = async (req, res, next) => {
     try {
-        const result = await storeService.addNewStore({ name, address, region });
-        return res.status(201).json(result); // 201 Created
-    } catch (error) {
-        if (error instanceof NotFoundError) {
-            throw error;
+        const { name, address, region } = req.body;
+
+        if (!name || !address || !region) {
+            return res.status(StatusCodes.BAD_REQUEST).json({ 
+                success: false,
+                message: '모든 가게 정보를 입력해야 합니다.' 
+            });
         }
-        console.error('가게 추가 중 오류 발생:', error);
-        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ 
-            message: '가게 추가 중 오류가 발생했습니다.',
-            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+
+        const result = await storeService.addNewStore({ 
+            name, 
+            address, 
+            region 
         });
+        
+        return res.status(StatusCodes.CREATED).json({
+            success: true,
+            message: '가게가 성공적으로 등록되었습니다.',
+            data: result
+        });
+    } catch (error) {
+        next(error);
     }
 };
 
@@ -289,19 +294,14 @@ export const getStoreById = async (req, res, next) => {
   try {
     const store = await getStoreByIdService(req.params.storeId);
     if (!store) {
-      return res.status(StatusCodes.NOT_FOUND).json({
-        success: false,
-        message: '가게를 찾을 수 없습니다.'
-      });
+      const error = new Error('가게를 찾을 수 없습니다.');
+      error.statusCode = StatusCodes.NOT_FOUND;
+      throw error;
     }
     
-    res.status(StatusCodes.OK).json({
-      success: true,
-      data: store
-    });
+    return res.success(store);
   } catch (error) {
-    console.error('Error listing store reviews:', error);
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: '가게 리뷰 조회 중 오류가 발생했습니다.' });
+    next(error);
   }
 };
 
@@ -424,47 +424,49 @@ export const getStoreMissions = async (req, res, next) => {
  *                   example: "리뷰 작성 중 오류가 발생했습니다."
  */
 export const handleCreateStoreReview = async (req, res, next) => {
-  try {
-    const { content, rating, userId } = req.body;
-    const storeId = parseInt(req.params.storeId);
+    try {
+        const userId = req.user.id;
+        const { content, rating } = req.body;
+        const storeId = parseInt(req.params.storeId);
 
-    // 테스트를 위해 인증 검사 일시 비활성화
-    // if (!userId) {
-    //   return res.status(StatusCodes.UNAUTHORIZED).json({ 
-    //     message: '로그인이 필요합니다.' 
-    //   });
-    // }
+        if (!content || !rating) {
+            return res.status(StatusCodes.BAD_REQUEST).json({
+                success: false,
+                message: '리뷰 내용과 평점은 필수입니다.'
+            });
+        }
 
-    const review = await storeService.createStoreReview({
-      content,
-      rating,
-      userId,
-      storeId
-    });
+        const review = await storeService.createStoreReview({
+            content,
+            rating,
+            userId,
+            storeId
+        });
 
-    res.status(StatusCodes.CREATED).json({
-      message: '리뷰가 성공적으로 등록되었습니다.',
-      data: review
-    });
-  } catch (error) {
-    console.error('Error creating store review:', error);
-    
-    if (error.message.includes('가게를 찾을 수 없습니다')) {
-      return res.status(StatusCodes.NOT_FOUND).json({ 
-        message: error.message 
-      });
+        return res.status(StatusCodes.CREATED).json({
+            success: true,
+            message: '리뷰가 성공적으로 등록되었습니다.',
+            data: review
+        });
+    } catch (error) {
+        console.error('Error creating store review:', error);
+        
+        if (error.message.includes('가게를 찾을 수 없습니다')) {
+            return res.status(StatusCodes.NOT_FOUND).json({ 
+                success: false,
+                message: error.message 
+            });
+        }
+        
+        if (error.message.includes('필수') || error.message.includes('평점')) {
+            return res.status(StatusCodes.BAD_REQUEST).json({ 
+                success: false,
+                message: error.message 
+            });
+        }
+        
+        next(error);
     }
-    
-    if (error.message.includes('필수') || error.message.includes('평점')) {
-      return res.status(StatusCodes.BAD_REQUEST).json({ 
-        message: error.message 
-      });
-    }
-    
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ 
-      message: '리뷰 등록 중 오류가 발생했습니다.' 
-    });
-  }
 };
 
 // handleAddReview는 handleCreateStoreReview의 별칭으로 사용

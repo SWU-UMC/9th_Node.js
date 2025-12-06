@@ -45,9 +45,6 @@ export const bodyToUser = (body) => {
 
 
 
-
-
-
 export const responseFromUser = ({ user, preferences = [] }) => {
   const preferFoods = preferences.length > 0 
     ? preferences.map((preference) => 

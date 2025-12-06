@@ -4,8 +4,8 @@ import * as challengeService from '../services/userChallenge.service.js';
  * POST /api/v1/users/{userId}/challenges 엔드포인트 핸들러
  */
 export const handleChallengeMission = async (req, res) => {
-    // URL 경로에서 userId 획득 (현재는 ID 1로 가정)
-    const userId = 1; 
+    // 인증된 사용자 ID 사용
+    const userId = req.user.id;
     // Body에서 도전할 미션 ID 획득
     const { missionId } = req.body; 
 
