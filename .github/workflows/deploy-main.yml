@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - 제로/main
+      - feature/mission-10/제로
   workflow_dispatch:
 
 jobs:
